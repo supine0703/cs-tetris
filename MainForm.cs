@@ -1,5 +1,3 @@
-using System.Windows.Forms.Design;
-
 namespace Tetris
 {
     internal partial class MainForm : Form

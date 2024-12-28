@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-
-namespace Tetris
+﻿namespace Tetris
 {
-    partial class Block
+    internal partial class Block
     {
         private struct BlockData(E_BlockType type, E_FacingDirection facing)
         {

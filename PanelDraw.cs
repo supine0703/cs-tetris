@@ -1,6 +1,6 @@
 ﻿namespace Tetris
 {
-    partial class Panel
+    internal partial class Panel
     {
         private int _blockSize; // Size of each block
         private Size PanelSize
@@ -36,38 +36,43 @@
             var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
             var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
 
-            using Pen outerPen = new(Color.Black, 3); // Outer border pen with black color
-            using Pen innerPen = new(Color.FromArgb(128, 128, 128, 128)); // Inner border pen with gray semi-transparency
-                                                                          // Draw outer border (around the entire grid)
-            g.DrawRectangle(outerPen, startX, startY - 1, _Columns * _blockSize + 1, _Rows * _blockSize + 1);
-
-            // Move the starting point up by the margin row number
-            startY -= _MarginRowNum * _blockSize;
-
-            // Draw inner grid lines
-            foreach (var i in Enumerable.Range(_MarginRowNum, _Rows))
+            using (Pen outerPen = new(Color.Black, 3)) // Outer border pen with black color
+            using (Pen innerPen = new(Color.FromArgb(128, 128, 128, 128))) // Inner border pen with gray semi-transparency
             {
-                foreach (var j in Enumerable.Range(0, _Columns))
+                // Draw outer border (around the entire grid)
+                g.DrawRectangle(outerPen, startX, startY - 1, _Columns * _blockSize + 1, _Rows * _blockSize + 1);
+
+                // Move the starting point up by the margin row number
+                startY -= _MarginRowNum * _blockSize;
+
+                // Draw inner grid lines
+                foreach (var i in Enumerable.Range(_MarginRowNum, _Rows))
                 {
-                    int x = startX + j * _blockSize;
-                    int y = startY + i * _blockSize;
-
-                    // Draw inner border
-                    g.DrawRectangle(innerPen, x, y, _blockSize, _blockSize);
-                    // Fill the block if it has one
-                    if (_gridInfo[i][j].hasBlock)
+                    foreach (var j in Enumerable.Range(0, _Columns))
                     {
-                        using Brush brush = new SolidBrush(_gridInfo[i][j].color);
-                        g.FillRectangle(brush, x, y, _blockSize, _blockSize);
-                        g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
-                    }
-                }
+                        int x = startX + j * _blockSize;
+                        int y = startY + i * _blockSize;
 
-                // Draw the row number at the left side of the grid
-                using Font font = new("Arial", 12);
-                // g.DrawString((i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
-                g.DrawString((_Rows + _MarginRowNum - i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
+                        // Draw inner border
+                        g.DrawRectangle(innerPen, x, y, _blockSize, _blockSize);
+                        // Fill the block if it has one
+                        if (_gridInfo[i][j].hasBlock)
+                        {
+                            using Brush brush = new SolidBrush(_gridInfo[i][j].color);
+                            g.FillRectangle(brush, x, y, _blockSize, _blockSize);
+                            g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
+                        }
+                    }
+
+                    // Draw the row number at the left side of the grid
+                    using Font font = new("Arial", 12);
+                    // g.DrawString((i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
+                    g.DrawString((_Rows + _MarginRowNum - i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
+                }
             }
+
+            // Draw the next block queue preview on the right side of the grid
+            DrawNextBlockPreview(g);
         }
 
         private void DrawBlock(Graphics g)
@@ -125,9 +130,6 @@
                     g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
                 }
             }
-
-            // Draw the next block queue preview on the right side of the grid
-            DrawNextBlockPreview(g);
         }
 
         private void DrawNextBlockPreview(Graphics g)

@@ -1,9 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing.Printing;
-using System.Windows.Forms;
-using static Tetris.Block;
-
-namespace Tetris
+﻿namespace Tetris
 {
     internal partial class Panel : UserControl
     {
@@ -28,7 +23,7 @@ namespace Tetris
         {
             // Initialize the randomizer
             var arr = Enum.GetValues(typeof(Block.E_BlockType));
-            _randomizer = new(arr.Cast<Block.E_BlockType>().Where(e => e != E_BlockType.Count).ToList());
+            _randomizer = new(arr.Cast<Block.E_BlockType>().Where(e => e != Block.E_BlockType.Count).ToList());
 
             // For avoid overflow
             _gridInfo = new(_Rows + _MarginRowNum);
