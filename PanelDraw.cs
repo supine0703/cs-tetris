@@ -1,0 +1,193 @@
+﻿namespace Tetris
+{
+    partial class Panel
+    {
+        private int _blockSize; // Size of each block
+        private Size PanelSize
+        {
+            get
+            {
+                Size s = ClientSize;
+                s.Width -= Padding.Horizontal;
+                s.Height -= Padding.Vertical;
+                return s;
+            }
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            // Adjust block size based on the new size of the window
+            _blockSize = Math.Min(ClientSize.Width * 2 / 3 / (_Columns + 2), ClientSize.Height / (_Rows + 2));
+            Padding = new(_blockSize);
+            Invalidate(); // Redraw the grid
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            DrawGrid(e.Graphics);
+            DrawBlock(e.Graphics);
+        }
+
+        private void DrawGrid(Graphics g)
+        {
+            // Calculate the starting point to center the grid
+            var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
+            var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
+
+            using Pen outerPen = new(Color.Black, 3); // Outer border pen with black color
+            using Pen innerPen = new(Color.FromArgb(128, 128, 128, 128)); // Inner border pen with gray semi-transparency
+                                                                          // Draw outer border (around the entire grid)
+            g.DrawRectangle(outerPen, startX, startY - 1, _Columns * _blockSize + 1, _Rows * _blockSize + 1);
+
+            // Move the starting point up by the margin row number
+            startY -= _MarginRowNum * _blockSize;
+
+            // Draw inner grid lines
+            foreach (var i in Enumerable.Range(_MarginRowNum, _Rows))
+            {
+                foreach (var j in Enumerable.Range(0, _Columns))
+                {
+                    int x = startX + j * _blockSize;
+                    int y = startY + i * _blockSize;
+
+                    // Draw inner border
+                    g.DrawRectangle(innerPen, x, y, _blockSize, _blockSize);
+                    // Fill the block if it has one
+                    if (_gridInfo[i][j].hasBlock)
+                    {
+                        using Brush brush = new SolidBrush(_gridInfo[i][j].color);
+                        g.FillRectangle(brush, x, y, _blockSize, _blockSize);
+                        g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
+                    }
+                }
+
+                // Draw the row number at the left side of the grid
+                using Font font = new("Arial", 12);
+                // g.DrawString((i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
+                g.DrawString((_Rows + _MarginRowNum - i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
+            }
+        }
+
+        private void DrawBlock(Graphics g)
+        {
+            if (_currentBlock == null)
+            {
+                return;
+            }
+
+            var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
+            var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
+
+            using (Pen pen = new(Color.Black, 3))
+            using (Pen shadowPen = new(Color.FromArgb(96, Color.Black), 2))
+            using (Brush brush = new SolidBrush(GetColor(_currentBlock.BlockType)))
+            using (Brush centerBrush = new SolidBrush(Color.Black))
+            using (Brush shadowBrush = new SolidBrush(Color.FromArgb(96, GetColor(_currentBlock.BlockType))))
+            {
+                var pos = _currentBlock.Pos;
+
+                // Draw the block
+                foreach (var position in _currentBlock.Placeholders)
+                {
+                    var x = startX + (position.x + pos.x) * _blockSize;
+                    var y = startY + (position.y + pos.y) * _blockSize;
+
+                    // Draw the block grid
+                    g.FillRectangle(brush, x, y, _blockSize, _blockSize);
+                    g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
+                }
+                // Draw the block center
+                var centerX = startX + (_currentBlock.RotateCenter.x + pos.x) * _blockSize;
+                var centerY = startY + (_currentBlock.RotateCenter.y + pos.y) * _blockSize;
+                // Black point in the center of the block
+                var radius = _blockSize * 0.125f;
+                g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
+
+                // Draw the shadow of the block
+                Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
+                while (CanFall(block))
+                {
+                    block.MoveUpOrDown(1);
+                }
+                foreach (var position in block.Placeholders)
+                {
+                    var x = startX + (position.x + block.Pos.x) * _blockSize;
+                    var y = startY + (position.y + block.Pos.y) * _blockSize;
+                    // Draw the shadow grid
+                    g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
+                    g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
+                    // Draw the shadow center
+                    centerX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
+                    centerY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
+                    // Black point in the center of the shadow
+                    g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
+                }
+            }
+
+            // Draw the next block queue preview on the right side of the grid
+            DrawNextBlockPreview(g);
+        }
+
+        private void DrawNextBlockPreview(Graphics g)
+        {
+            var previewStartX = (PanelSize.Width + _Columns * _blockSize) / 2 + Padding.Left + _blockSize / 2;
+            var previewStartY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top + _blockSize / 2;
+
+            // Draw the preview border
+            using (Pen previewPen = new(Color.Black, 2))
+            {
+                g.DrawRectangle(previewPen, previewStartX, previewStartY, 3 * _blockSize, 14 * _blockSize);
+            }
+
+            previewStartX += _blockSize / 2;
+            previewStartY += _blockSize / 2;
+
+            // Draw the preview blocks
+            foreach (Block block in _nextBlocks)
+            {
+                using Pen pen = new(Color.Black, 1);
+                using Brush brush = new SolidBrush(GetColor(block.BlockType));
+                using Brush centerBrush = new SolidBrush(Color.Black);
+
+                var blockSize = _blockSize / 2;
+                var xDiff = 0;
+                if (block.BlockType != Block.E_BlockType.I && block.BlockType != Block.E_BlockType.O)
+                {
+                    xDiff = blockSize / 2;
+                }
+
+                foreach (var position in block.Placeholders)
+                {
+                    var x = previewStartX + position.x * blockSize;
+                    var y = previewStartY + position.y * blockSize;
+
+                    // Draw the block grid
+                    g.FillRectangle(brush, x + xDiff, y, blockSize, blockSize);
+                    g.DrawRectangle(pen, x + xDiff, y, blockSize, blockSize);
+                }
+                // Draw the shadow center
+                var centerX = previewStartX + (block.RotateCenter.x) * blockSize + xDiff;
+                var centerY = previewStartY + (block.RotateCenter.y) * blockSize;
+                var radius = blockSize * 0.125f;
+                g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
+
+                previewStartY += 4 * blockSize + 10; // 移动到下一个方块的预览位置
+            }
+        }
+
+        private static Color GetColor(Block.E_BlockType type) => type switch
+        {
+            // Select the color based on the block type
+            Block.E_BlockType.I => Color.FromArgb(184, 231, 223), // 青绿
+            Block.E_BlockType.J => Color.FromArgb(100, 150, 220), // 蓝色
+            Block.E_BlockType.L => Color.FromArgb(220, 130, 70),  // 橙红色
+            Block.E_BlockType.O => Color.FromArgb(240, 230, 140), // 黄褐色
+            Block.E_BlockType.S => Color.FromArgb(130, 170, 110), // 绿松石色
+            Block.E_BlockType.T => Color.FromArgb(200, 150, 180), // 紫红色
+            Block.E_BlockType.Z => Color.FromArgb(230, 100, 100), // 红色
+            _ => throw new ArgumentOutOfRangeException(nameof(type)),
+        };
+    }
+}
