@@ -3,32 +3,13 @@
     internal partial class Panel
     {
         private int _blockSize; // Size of each block
-        private Size PanelSize
-        {
-            get
-            {
-                Size s = ClientSize;
-                s.Width -= Padding.Horizontal;
-                s.Height -= Padding.Vertical;
-                return s;
-            }
-        }
+        private Size PanelSize => new(ClientSize.Width - Padding.Horizontal, ClientSize.Height - Padding.Vertical);
 
-        protected override void OnResize(EventArgs e)
+        private void AdujustPanelSize()
         {
-            base.OnResize(e);
             // Adjust block size based on the new size of the window
             _blockSize = Math.Min(ClientSize.Width * 2 / 3 / (_Columns + 2), ClientSize.Height / (_Rows + 2));
             Padding = new(_blockSize);
-            Invalidate(); // Redraw the grid
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            DrawGrid(e.Graphics);
-            DrawBlock(e.Graphics);
-            DrawBeEatProgress(e.Graphics);
         }
 
         private void DrawGrid(Graphics g)

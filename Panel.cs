@@ -50,6 +50,20 @@ namespace Tetris
             this.DoubleBuffered = true;
         }
 
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            AdujustPanelSize();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            DrawGrid(e.Graphics);
+            DrawBlock(e.Graphics);
+            DrawBeEatProgress(e.Graphics);
+        }
+
         public void Restart()
         {
             _randomizer.RefillBag();
@@ -67,7 +81,6 @@ namespace Tetris
                 _nextBlocks.Enqueue(new Block(_randomizer.Next()));
             }
             RandomBlock();
-            this.Invalidate();
         }
 
         private void KeyDownHandler(KeyEventArgs e)
@@ -80,7 +93,6 @@ namespace Tetris
             if (e.KeyCode == Keys.Space)
             {
                 RandomBlock();
-                Invalidate();
             }
             else if (e.KeyCode switch
             {
@@ -93,7 +105,6 @@ namespace Tetris
                 _ => false,
             })
             {
-                Invalidate();
             }
         }
 
