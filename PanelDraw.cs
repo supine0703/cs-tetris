@@ -28,6 +28,7 @@
             base.OnPaint(e);
             DrawGrid(e.Graphics);
             DrawBlock(e.Graphics);
+            DrawBeEatProgress(e.Graphics);
         }
 
         private void DrawGrid(Graphics g)
@@ -85,50 +86,48 @@
             var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
             var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
 
-            using (Pen pen = new(Color.Black, 3))
-            using (Pen shadowPen = new(Color.FromArgb(96, Color.Black), 2))
-            using (Brush brush = new SolidBrush(GetColor(_currentBlock.BlockType)))
-            using (Brush centerBrush = new SolidBrush(Color.Black))
-            using (Brush shadowBrush = new SolidBrush(Color.FromArgb(96, GetColor(_currentBlock.BlockType))))
+            var pos = _currentBlock.Pos;
+
+            // Draw the block
+            using Pen pen = new(Color.Black, 3);
+            using Brush brush = new SolidBrush(GetColor(_currentBlock.BlockType));
+            using Brush centerBrush = new SolidBrush(Color.Black);
+            foreach (var position in _currentBlock.Placeholders)
             {
-                var pos = _currentBlock.Pos;
+                var x = startX + (position.x + pos.x) * _blockSize;
+                var y = startY + (position.y + pos.y) * _blockSize;
 
-                // Draw the block
-                foreach (var position in _currentBlock.Placeholders)
-                {
-                    var x = startX + (position.x + pos.x) * _blockSize;
-                    var y = startY + (position.y + pos.y) * _blockSize;
+                // Draw the block grid
+                g.FillRectangle(brush, x, y, _blockSize, _blockSize);
+                g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
+            }
+            // Draw the block center
+            var centerX = startX + (_currentBlock.RotateCenter.x + pos.x) * _blockSize;
+            var centerY = startY + (_currentBlock.RotateCenter.y + pos.y) * _blockSize;
+            // Black point in the center of the block
+            var radius = _blockSize * 0.125f;
+            g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
 
-                    // Draw the block grid
-                    g.FillRectangle(brush, x, y, _blockSize, _blockSize);
-                    g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
-                }
-                // Draw the block center
-                var centerX = startX + (_currentBlock.RotateCenter.x + pos.x) * _blockSize;
-                var centerY = startY + (_currentBlock.RotateCenter.y + pos.y) * _blockSize;
-                // Black point in the center of the block
-                var radius = _blockSize * 0.125f;
+            // Draw the shadow of the block
+            using Pen shadowPen = new(Color.FromArgb(96, Color.Black), 2);
+            using Brush shadowBrush = new SolidBrush(Color.FromArgb(96, GetColor(_currentBlock.BlockType)));
+            Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
+            while (CanFall(block))
+            {
+                block.MoveUpOrDown(1);
+            }
+            foreach (var position in block.Placeholders)
+            {
+                var x = startX + (position.x + block.Pos.x) * _blockSize;
+                var y = startY + (position.y + block.Pos.y) * _blockSize;
+                // Draw the shadow grid
+                g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
+                g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
+                // Draw the shadow center
+                centerX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
+                centerY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
+                // Black point in the center of the shadow
                 g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
-
-                // Draw the shadow of the block
-                Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
-                while (CanFall(block))
-                {
-                    block.MoveUpOrDown(1);
-                }
-                foreach (var position in block.Placeholders)
-                {
-                    var x = startX + (position.x + block.Pos.x) * _blockSize;
-                    var y = startY + (position.y + block.Pos.y) * _blockSize;
-                    // Draw the shadow grid
-                    g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
-                    g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
-                    // Draw the shadow center
-                    centerX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
-                    centerY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
-                    // Black point in the center of the shadow
-                    g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
-                }
             }
         }
 
@@ -177,6 +176,24 @@
 
                 previewStartY += 4 * blockSize + 10; // 移动到下一个方块的预览位置
             }
+        }
+
+        private void DrawBeEatProgress(Graphics g)
+        {
+            var startX = (PanelSize.Width + _Columns * _blockSize) / 2 + Padding.Left + _blockSize;
+            var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top + _blockSize * 16;
+            var radius = _blockSize; // Ring radius
+            var thickness = _blockSize / 2; // Ring thickness
+
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            // Draw the background ring
+            g.DrawEllipse(new Pen(Color.LightGray, thickness), startX, startY, radius * 2, radius * 2);
+
+            // Draw the progress ring
+            float sweepAngle = 360 * _progress / TotalProgress;
+            using var pen = new Pen(Color.Blue, thickness);
+            g.DrawArc(pen, startX, startY, radius * 2, radius * 2, -90, sweepAngle);
         }
 
         private static Color GetColor(Block.E_BlockType type) => type switch

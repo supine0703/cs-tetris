@@ -8,4 +8,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Update="BlockData.cs">
+      <DependentUpon>Block.cs</DependentUpon>
+    </Compile>
+    <Compile Update="PanelDraw.cs">
+      <DependentUpon>Panel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="PanelRule.cs">
+      <DependentUpon>Panel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="PanelTimer.cs">
+      <DependentUpon>Panel.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>
