@@ -1,7 +1,27 @@
-﻿namespace Tetris
+﻿using System.Diagnostics;
+using static Tetris.Block;
+
+namespace Tetris
 {
     internal partial class Panel
     {
+        private readonly BagRandomizer<Block.E_BlockType> _randomizer = new();
+
+        private void InitializeRandomizer()
+        {
+            // Initialize the randomizer
+            var arr = Enum.GetValues(typeof(Block.E_BlockType));
+            _randomizer.Reset(new(arr.Cast<Block.E_BlockType>().Where(e => e != Block.E_BlockType.Count)));
+        }
+
+        private Block GetRandomBlock() => new(_randomizer.Next());
+
+        private void RandomBlock()
+        {
+            _currentBlock = _nextBlocks.Dequeue();
+            _nextBlocks.Enqueue(GetRandomBlock());
+        }
+
         private void OnGameOver()
         {
             MessageBox.Show("Game Over!");
@@ -21,15 +41,15 @@
 
         private bool EatBlock()
         {
-            if (CanFall())
+            if (CanFall() > 0)
             {
                 return false;
             }
 
-            foreach (var position in _currentBlock.Placeholders)
+            foreach (var placeholder in _currentBlock.Placeholders)
             {
-                var y = (int)(position.y + _currentBlock.Pos.y + _MarginRowNum);
-                var x = (int)(position.x + _currentBlock.Pos.x);
+                var y = (int)Math.Ceiling(placeholder.y + _currentBlock.Pos.y + _MarginRowNum);
+                var x = (int)Math.Ceiling(placeholder.x + _currentBlock.Pos.x);
                 _gridInfo[y][x].hasBlock = true;
                 _gridInfo[y][x].color = GetColor(_currentBlock.BlockType);
             }
@@ -51,20 +71,17 @@
 
         private bool DropBlock()
         {
-            while (CanFall())
-            {
-                _currentBlock.MoveUpOrDown(1);
-            }
+            FallBottom();
             return EatBlock();
         }
 
         private void EliminateFullLines()
         {
             HashSet<int> fullLines = [];
-            foreach (var position in _currentBlock.Placeholders)
+            foreach (var placeholder in _currentBlock.Placeholders)
             {
                 var lineFull = true;
-                var y = (int)(position.y + _currentBlock.Pos.y + _MarginRowNum);
+                var y = (int)Math.Ceiling(placeholder.y + _currentBlock.Pos.y) + _MarginRowNum;
                 foreach (int i in Enumerable.Range(0, _Columns))
                 {
                     if (!_gridInfo[y][i].hasBlock)
@@ -89,7 +106,7 @@
         private bool TryMoveBlockLeftOrRight(int direction)
         {
             _currentBlock.MoveLeftOrRight(direction);
-            if (CheckCollision(_currentBlock))
+            if (CheckCollision())
             {
                 // undo the move if there is a collision
                 _currentBlock.MoveLeftOrRight(-direction);
@@ -98,10 +115,10 @@
             return true;
         }
 
-        private bool TryMoveBlockUpOrDown(int direction)
+        private bool TryMoveBlockUpOrDown(float direction)
         {
             _currentBlock.MoveUpOrDown(direction);
-            if (CheckCollision(_currentBlock))
+            if (CheckCollision())
             {
                 // undo the move if there is a collision
                 _currentBlock.MoveUpOrDown(-direction);
@@ -113,7 +130,7 @@
         private bool TryLeftRotate()
         {
             _currentBlock.LeftRotate();
-            if (CheckCollision(_currentBlock) && !TestKickWall(Block.E_RotateDirection.Left))
+            if (CheckCollision() && !TestKickWall(Block.E_RotateDirection.Left))
             {
                 // undo the rotation if there is a collision
                 _currentBlock.RightRotate();
@@ -125,7 +142,7 @@
         private bool TryRightRotate()
         {
             _currentBlock.RightRotate();
-            if (CheckCollision(_currentBlock) && !TestKickWall(Block.E_RotateDirection.Right))
+            if (CheckCollision() && !TestKickWall(Block.E_RotateDirection.Right))
             {
                 // undo the rotation if there is a collision
                 _currentBlock.LeftRotate();
@@ -155,12 +172,13 @@
             return false;
         }
 
+        private bool CheckCollision() => CheckCollision(_currentBlock);
         private bool CheckCollision(Block block)
         {
-            foreach (var position in block.Placeholders)
+            foreach (var placeholder in block.Placeholders)
             {
-                var posX = (int)(position.x + block.Pos.x);
-                var posY = (int)(position.y + block.Pos.y + _MarginRowNum);
+                var posX = (int)Math.Ceiling(placeholder.x + block.Pos.x);
+                var posY = (int)Math.Ceiling(placeholder.y + block.Pos.y) + _MarginRowNum;
 
                 // Check if the block is out of bounds
                 if (posX < 0 || posX >= _Columns || posY < 0 || posY >= _Rows + _MarginRowNum)
@@ -177,28 +195,43 @@
             return false;
         }
 
-        private bool CheckCollision() => CheckCollision(_currentBlock);
-
-        private bool CanFall(Block block)
+        private float CanFall() => CanFall(_currentBlock);
+        private float CanFall(Block block)
         {
-            foreach (var position in block.Placeholders)
+            var distance = (float)(Math.Ceiling(block.Pos.y) - block.Pos.y);
+
+            foreach (var placeholder in block.Placeholders)
             {
-                var y = (int)(position.y + block.Pos.y) + 1;
-                var x = (int)(position.x + block.Pos.x);
+                var y = (int)Math.Ceiling(placeholder.y + block.Pos.y);
+                var x = (int)Math.Ceiling(placeholder.x + block.Pos.x);
+                // Check if the pos is integer
+                if (distance == 0)
+                {
+                    y++;
+                }
+
+                // Check if the bottom of the block has space to fall
                 if (y >= _Rows || _gridInfo[y + _MarginRowNum][x].hasBlock)
                 {
-                    return false;
+                    return 0;
                 }
             }
-            return true;
+            return distance == 0 ? 1 : distance;
         }
 
-        private bool CanFall() => CanFall(_currentBlock);
-
-        private void RandomBlock()
+        private void FallBottom() { FallBottom(_currentBlock); }
+        private void FallBottom(Block block)
         {
-            _currentBlock = _nextBlocks.Dequeue();
-            _nextBlocks.Enqueue(new Block(_randomizer.Next()));
+            float distance;
+            while ((distance = CanFall(block)) != 0)
+            {
+                block.MoveUpOrDown(distance);
+            }
+
+            if (block.Pos.y % 1 != 0)
+            {
+                throw new Exception($"{block.Pos.y} is not an integer, distance: {distance}");
+            }
         }
     }
 }

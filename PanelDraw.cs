@@ -73,10 +73,10 @@
             using Pen pen = new(Color.Black, 3);
             using Brush brush = new SolidBrush(GetColor(_currentBlock.BlockType));
             using Brush centerBrush = new SolidBrush(Color.Black);
-            foreach (var position in _currentBlock.Placeholders)
+            foreach (var placeholder in _currentBlock.Placeholders)
             {
-                var x = startX + (position.x + pos.x) * _blockSize;
-                var y = startY + (position.y + pos.y) * _blockSize;
+                var x = startX + (placeholder.x + pos.x) * _blockSize;
+                var y = startY + (placeholder.y + pos.y) * _blockSize;
 
                 // Draw the block grid
                 g.FillRectangle(brush, x, y, _blockSize, _blockSize);
@@ -93,14 +93,11 @@
             using Pen shadowPen = new(Color.FromArgb(96, Color.Black), 2);
             using Brush shadowBrush = new SolidBrush(Color.FromArgb(96, GetColor(_currentBlock.BlockType)));
             Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
-            while (CanFall(block))
+            FallBottom(block);
+            foreach (var placeholder in block.Placeholders)
             {
-                block.MoveUpOrDown(1);
-            }
-            foreach (var position in block.Placeholders)
-            {
-                var x = startX + (position.x + block.Pos.x) * _blockSize;
-                var y = startY + (position.y + block.Pos.y) * _blockSize;
+                var x = startX + (placeholder.x + block.Pos.x) * _blockSize;
+                var y = startY + (placeholder.y + block.Pos.y) * _blockSize;
                 // Draw the shadow grid
                 g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
                 g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
@@ -140,10 +137,10 @@
                     xDiff = blockSize / 2;
                 }
 
-                foreach (var position in block.Placeholders)
+                foreach (var placeholder in block.Placeholders)
                 {
-                    var x = previewStartX + position.x * blockSize;
-                    var y = previewStartY + position.y * blockSize;
+                    var x = previewStartX + placeholder.x * blockSize;
+                    var y = previewStartY + placeholder.y * blockSize;
 
                     // Draw the block grid
                     g.FillRectangle(brush, x + xDiff, y, blockSize, blockSize);

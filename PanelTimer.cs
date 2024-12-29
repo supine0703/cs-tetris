@@ -7,6 +7,8 @@ namespace Tetris
         private readonly Timer _timer = new();
         private const int TimerInterval = 16;   // 62.5 FPS
 
+        private float _fallSpeed = 0.06f; // grid per frame
+
         private int _progress = 0; // in ms
         private const bool _timerEnabled = true;
         private const int TotalProgress = 600;  // 0.6s
@@ -26,7 +28,13 @@ namespace Tetris
             //    _progress = 0;
             //    _timer.Stop();
             //}
-            this.Invalidate();
+
+            if (_fallSpeed > 0 && !TryMoveBlockUpOrDown(_fallSpeed))
+            {
+                FallBottom();
+            }
+
+            this.Invalidate(); // Redraw the panel
         }
     }
 }

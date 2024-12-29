@@ -66,7 +66,7 @@
         public void RightRotate() { _blockData.RightRotate(); }
         public void LeftRotate() { _blockData.LeftRotate(); }
 
-        public void MoveLeftOrRight(int x) { _pos.x += x; }
-        public void MoveUpOrDown(int y) { _pos.y += y; }
+        public void MoveLeftOrRight(float x) { _pos.x += x; }
+        public void MoveUpOrDown(float y) { _pos.y += y; }
     }
 }

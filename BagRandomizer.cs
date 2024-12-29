@@ -3,8 +3,8 @@
     public class BagRandomizer<T>
     {
         private readonly Random _random = new();
-        private readonly List<T> _items;
-        private readonly Queue<int> _bagIndexs;
+        private List<T> _items;
+        private Queue<int> _bagIndexs;
 
         public BagRandomizer() : this(new List<T>()) { }
         public BagRandomizer(Array items) : this(items.Cast<T>().ToList()) { }
@@ -13,7 +13,13 @@
             _items = new(items);
             _bagIndexs = new(_items.Count);
         }
-        
+
+        public void Reset(List<T> items)
+        {
+            _items = new(items);
+            _bagIndexs = new(_items.Count);
+        }
+
         public T Next()
         {
             if (_items.Count == 0)
