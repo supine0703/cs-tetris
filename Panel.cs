@@ -15,7 +15,7 @@ namespace Tetris
         }
 
         private const int _MarginRowNum = 4;
-        private const int _PrimaryBlockSize = (int)Block.E_BlockType.Count - 1;
+        private const int _PrimaryBlockSize = (int)Block.E_BlockType.Count;
         private const int _Rows = 20;
         private const int _Columns = 10;
 
@@ -73,7 +73,11 @@ namespace Tetris
             }
 
             // Reset the block
+            _backupBlock = null;
             RandomBlock();
+            
+            // Start timer
+            _timer.Start();
         }
 
         protected override void OnResize(EventArgs e)

@@ -38,7 +38,7 @@
         private BlockData _blockData = new(type, facing);
         private Position _pos = pos;
 
-        public Position Pos { get => _pos; set => _pos = value; }
+        public Position Pos => _pos;
         public E_BlockType BlockType => _blockData.BlockType;
         public E_FacingDirection FacingDirection => _blockData.FacingDirection;
         public Position RotateCenter => _blockData.RotateCenter;

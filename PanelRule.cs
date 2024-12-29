@@ -24,6 +24,8 @@ namespace Tetris
 
         private void OnGameOver()
         {
+            this.Invalidate();
+            _timer.Stop();
             MessageBox.Show("Game Over!");
         }
 
@@ -112,9 +114,8 @@ namespace Tetris
             }
             else
             {
-                (_backupBlock, _currentBlock) = (_currentBlock, _backupBlock);
+                (_backupBlock, _currentBlock) = (_currentBlock, new(_backupBlock.BlockType));
             }
-            _backupBlock.Pos = DefaultPos;
 
             return true;
         }

@@ -14,7 +14,6 @@ namespace Tetris
         private int _autoEatTotalProgress = 600;    // 0.6s
         private bool _autoEatEnabled = true;
         
-
         private void InitializeTimer()
         {
             _timer.Interval = TimerInterval;

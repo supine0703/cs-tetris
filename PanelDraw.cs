@@ -65,16 +65,14 @@ namespace Tetris
                             g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
                         }
                     }
-
-                    // Draw the row number at the left side of the grid
-                    using Font font = new("Arial", 12);
-                    // g.DrawString((i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
-                    g.DrawString((_Rows + _MarginRowNum - i).ToString(), font, Brushes.Black, startX - 28, startY + i * _blockSize + 5);
                 }
             }
 
             // Draw the next block queue preview on the right side of the grid
             DrawNextBlockPreview(g);
+
+            // Draw the backup block preview on the left side of the grid
+            DrawBackupBlock(g);
         }
 
         private void DrawBlock(Graphics g)
@@ -126,17 +124,22 @@ namespace Tetris
 
         private void DrawNextBlockPreview(Graphics g)
         {
-            var previewStartX = (PanelSize.Width + _Columns * _blockSize) / 2 + Padding.Left + _blockSize / 2;
-            var previewStartY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top + _blockSize / 2;
+            var startX = (ClientSize.Width + _Columns * _blockSize + Padding.Right) * 0.5f;
+            var startY = (ClientSize.Height - _Rows * _blockSize + Padding.Top) * 0.5f + _blockSize * 0.4f;
+
+            // Define the block size for the preview
+            var blockSize = _blockSize * 0.672f;
 
             // Draw the preview border
             using (Pen previewPen = new(_foreColor, 2))
+            using (Brush backBrush = new SolidBrush(Color.FromArgb(64, _backColor)))
             {
-                g.DrawRectangle(previewPen, previewStartX, previewStartY, 3 * _blockSize, 14.4f * _blockSize);
+                g.FillRectangle(backBrush, startX, startY, blockSize * 4.56f, blockSize * 19.6f);
+                g.DrawRectangle(previewPen, startX, startY, blockSize * 4.56f, blockSize * 19.6f);
             }
 
-            previewStartX += _blockSize / 2;
-            previewStartY += _blockSize / 2;
+            startX += blockSize * 0.28f;
+            startY -= blockSize * 0.28f;
 
             // Draw the preview blocks
             foreach (Block block in _nextBlocks)
@@ -145,38 +148,106 @@ namespace Tetris
                 using Brush brush = new SolidBrush(GetColor(block.BlockType));
                 using Brush centerBrush = new SolidBrush(_foreColor);
 
-                var blockSize = _blockSize / 2;
-                var xDiff = 0;
-                if (block.BlockType != Block.E_BlockType.I && block.BlockType != Block.E_BlockType.O)
+                // Define the offset for the block center
+                float xDiff = 0;
+                float yDiff = 0;
+                if (block.BlockType == Block.E_BlockType.I)
+                {
+                    yDiff = blockSize * 0.5f;
+                }
+                else if (block.BlockType != Block.E_BlockType.O)
+                {
+                    xDiff = blockSize * 0.5f;
+                }
+
+                // Draw the block
+                foreach (var placeholder in block.Placeholders)
+                {
+                    var x = startX + placeholder.x * blockSize;
+                    var y = startY + placeholder.y * blockSize;
+
+                    // Draw the block grid
+                    g.FillRectangle(brush, x + xDiff, y + yDiff, blockSize, blockSize);
+                    g.DrawRectangle(pen, x + xDiff, y + yDiff, blockSize, blockSize);
+                }
+                // Draw the shadow center
+                var centerX = startX + (block.RotateCenter.x) * blockSize + xDiff;
+                var centerY = startY + (block.RotateCenter.y) * blockSize + yDiff;
+                var radius = blockSize * 0.125f;
+                g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
+
+                startY += 2.8f * blockSize + 10; // Move the starting point to the next block
+            }
+        }
+
+        private void DrawBackupBlock(Graphics g)
+        {
+            var startX = (ClientSize.Width - _Columns * _blockSize - Padding.Left) * 0.5f;
+            var startY = (ClientSize.Height - _Rows * _blockSize + Padding.Top) * 0.5f + _blockSize * 0.4f;
+
+            // Define the block size for the preview
+            var blockSize = _blockSize * 0.672f;
+
+            // Draw the backup border
+            using (Pen backupPen = new(_foreColor, 2))
+            using (Brush backBrush = new SolidBrush(Color.FromArgb(64, _backColor)))
+            {
+                var w = blockSize * 4.56f;
+                startX -= w;
+                g.DrawRectangle(backupPen, startX, startY, w, blockSize * 3.6f);
+                g.FillRectangle(backBrush, startX, startY, w, blockSize * 3.6f);
+            }
+
+            startX += blockSize * 0.28f;
+            startY -= blockSize * 0.28f;
+
+            var block = _backupBlock;
+
+            if (block is not null)
+            {
+                using Pen pen = new(_foreColor, 1);
+                using Brush brush = new SolidBrush(GetColor(block.BlockType));
+                using Brush centerBrush = new SolidBrush(_foreColor);
+
+                // Define the offset for the block center
+                float xDiff = 0;
+                float yDiff = 0;
+                if (block.BlockType == Block.E_BlockType.I)
+                {
+                    yDiff = blockSize / 2;
+                }
+                else if (block.BlockType != Block.E_BlockType.O)
                 {
                     xDiff = blockSize / 2;
                 }
 
+                // Draw the block
                 foreach (var placeholder in block.Placeholders)
                 {
-                    var x = previewStartX + placeholder.x * blockSize;
-                    var y = previewStartY + placeholder.y * blockSize;
+                    var x = startX + placeholder.x * blockSize;
+                    var y = startY + placeholder.y * blockSize;
 
                     // Draw the block grid
-                    g.FillRectangle(brush, x + xDiff, y, blockSize, blockSize);
-                    g.DrawRectangle(pen, x + xDiff, y, blockSize, blockSize);
+                    g.FillRectangle(brush, x + xDiff, y + yDiff, blockSize, blockSize);
+                    g.DrawRectangle(pen, x + xDiff, y + yDiff, blockSize, blockSize);
                 }
                 // Draw the shadow center
-                var centerX = previewStartX + (block.RotateCenter.x) * blockSize + xDiff;
-                var centerY = previewStartY + (block.RotateCenter.y) * blockSize;
+                var centerX = startX + (block.RotateCenter.x) * blockSize + xDiff;
+                var centerY = startY + (block.RotateCenter.y) * blockSize + yDiff;
                 var radius = blockSize * 0.125f;
                 g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
 
-                previewStartY += 4 * blockSize + 10; // 移动到下一个方块的预览位置
             }
         }
 
         private void DrawBeEatProgress(Graphics g)
         {
-            var startX = (PanelSize.Width + _Columns * _blockSize) / 2 + Padding.Left + _blockSize;
-            var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top + _blockSize * 16.4f;
-            var radius = _blockSize; // Ring radius
-            var thickness = _blockSize / 2; // Ring thickness
+            var radius = _blockSize * 1.02f;    // Ring radius
+            var thickness = _blockSize * 0.54f;  // Ring thickness
+
+            var startX = (ClientSize.Width + _Columns * _blockSize + Padding.Right) * 0.5f;
+            var startY = (ClientSize.Height - _Rows * _blockSize + Padding.Top) *0.5f + _blockSize * 14.9f;
+            startX += _blockSize * 0.672f * 2.28f - radius;
 
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
