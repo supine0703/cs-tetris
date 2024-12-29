@@ -1,21 +1,20 @@
 ﻿using System.Diagnostics;
-using static Tetris.Block;
 using Timer = System.Windows.Forms.Timer;
 
 namespace Tetris
 {
     internal partial class Panel : UserControl
     {
-        private struct GridInfo(bool hasBlock, Color color)
+        private struct GridInfo(bool hasBlock, Block.E_BlockType belongsTo)
         {
             public bool hasBlock = hasBlock;
-            public Color color = color;
+            public Block.E_BlockType belongsTo = belongsTo;
 
-            public GridInfo() : this(false, _backColor) { }
+            public GridInfo() : this(false, Block.E_BlockType.Count) { }
         }
 
-        private const int _MarginRowNum = 4;
-        private const int _PrimaryBlockSize = (int)Block.E_BlockType.Count;
+        private const int _MarginRowNum = 5;
+        private const int _PrimaryBlockSize = (int)Block.E_BlockType.Count - 1;
         private const int _Rows = 20;
         private const int _Columns = 10;
 
@@ -48,6 +47,9 @@ namespace Tetris
             // Initialize the key system
             InitializeKeySystem();
 
+            // Initialize the panel settings
+            InitializeSettings();
+
             this.KeyDown += (sender, e) => KeyDownHandler(e);
             this.KeyUp += (sender, e) => KeyUpHandler(e);
             this.DoubleBuffered = true;
@@ -75,7 +77,7 @@ namespace Tetris
             // Reset the block
             _backupBlock = null;
             RandomBlock();
-            
+
             // Start timer
             _timer.Start();
         }
@@ -84,6 +86,7 @@ namespace Tetris
         {
             base.OnResize(e);
             AdujustPanelSize();
+            ResizeSettings();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -134,7 +137,7 @@ namespace Tetris
             _safeOfMoveFirts.Tick += (sender, e) => _safeOfMoveFirts.Stop();
             _safeOfMoveFirts.Tick += (sender, e) => _multiMoveTimer.Start();
             _multiMoveTimer.Interval = 40;
-            _multiMoveTimer.Tick += (sender, e) => PreeHorizontalMove();
+            _multiMoveTimer.Tick += (sender, e) => PressHorizontalMove();
         }
 
         private void KeyDownHandler(KeyEventArgs e)
@@ -203,7 +206,7 @@ namespace Tetris
             }
         }
 
-        private void PreeHorizontalMove()
+        private void PressHorizontalMove()
         {
             var leftPressed = false;
             foreach (var key in _canMoveLeftKeys)

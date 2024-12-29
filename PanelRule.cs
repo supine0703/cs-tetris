@@ -53,7 +53,7 @@ namespace Tetris
                 var y = (int)Math.Ceiling(placeholder.y + _currentBlock.Pos.y + _MarginRowNum);
                 var x = (int)Math.Ceiling(placeholder.x + _currentBlock.Pos.x);
                 _gridInfo[y][x].hasBlock = true;
-                _gridInfo[y][x].color = GetColor(_currentBlock.BlockType);
+                _gridInfo[y][x].belongsTo = _currentBlock.BlockType;
             }
 
             // Eliminate full lines
@@ -107,14 +107,10 @@ namespace Tetris
 
         private bool TryBackupBlock()
         {
-            if (_backupBlock is null)
+            (_backupBlock, _currentBlock) = (new(_currentBlock.BlockType), _backupBlock);
+            if (_currentBlock is null)
             {
-                _backupBlock = _currentBlock;
                 RandomBlock();
-            }
-            else
-            {
-                (_backupBlock, _currentBlock) = (_currentBlock, new(_backupBlock.BlockType));
             }
 
             return true;

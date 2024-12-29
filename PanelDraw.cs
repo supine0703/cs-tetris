@@ -7,12 +7,12 @@ namespace Tetris
         private int _blockSize; // Size of each block
         private Size PanelSize => new(ClientSize.Width - Padding.Horizontal, ClientSize.Height - Padding.Vertical);
 
-        private const bool UsingDark = true;
-        private static readonly Color _backColor = UsingDark ? Color.Black : Color.FromArgb(242, 242, 242);
-        private static readonly Color _foreColor = UsingDark ? Color.White : Color.Black;
+        private bool UsingDark { get; set; } = true;
+        private Color BackgroundColor => UsingDark ? Color.Black : Color.FromArgb(242, 242, 242);
+        private Color ForegroundColor => UsingDark ? Color.White : Color.Black;
         // Define the gradient colors
-        private static readonly Color _backgroundColor_1 = UsingDark ? Color.FromArgb(0, 120, 80) : Color.FromArgb(144, 238, 144);
-        private static readonly Color _backgroundColor_2 = UsingDark ? Color.FromArgb(139, 0, 87) : Color.FromArgb(255, 182, 193);
+        private Color BackgroundColor_1 => UsingDark ? Color.FromArgb(0, 120, 80) : Color.FromArgb(144, 238, 144);
+        private Color BackgroundColor_2 => UsingDark ? Color.FromArgb(139, 0, 87) : Color.FromArgb(255, 182, 193);
 
         private void AdujustPanelSize()
         {
@@ -24,7 +24,7 @@ namespace Tetris
         private void DrawBackground(Graphics g)
         {
             // Draw the background gradient
-            using LinearGradientBrush brush = new(ClientRectangle, _backgroundColor_1, _backgroundColor_2, 270f);
+            using LinearGradientBrush brush = new(ClientRectangle, BackgroundColor_1, BackgroundColor_2, 270f);
             g.FillRectangle(brush, ClientRectangle);
         }
 
@@ -34,9 +34,9 @@ namespace Tetris
             var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
             var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
 
-            using (Pen outerPen = new(_foreColor, 3)) // Outer border pen with .. color
+            using (Pen outerPen = new(ForegroundColor, 3)) // Outer border pen with .. color
             using (Pen innerPen = new(Color.FromArgb(128, 128, 128, 128))) // Inner border pen with gray semi-transparency
-            using (Brush backBrush = new SolidBrush(_backColor)) // Background brush with white color
+            using (SolidBrush backBrush = new(BackgroundColor)) // Background brush with white color
             {
                 // Draw outer border (around the entire grid)
                 g.DrawRectangle(outerPen, startX, startY - 1, _Columns * _blockSize + 1, _Rows * _blockSize + 1);
@@ -60,7 +60,7 @@ namespace Tetris
                         // Fill the block if it has one
                         if (_gridInfo[i][j].hasBlock)
                         {
-                            using Brush brush = new SolidBrush(_gridInfo[i][j].color);
+                            using SolidBrush brush = new(GetColor(_gridInfo[i][j].belongsTo));
                             g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                             g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
                         }
@@ -82,12 +82,12 @@ namespace Tetris
 
             var pos = _currentBlock.Pos;
             var radius = _blockSize * 0.125f;
-            using Brush centerBrush = new SolidBrush(_foreColor);
+            using SolidBrush centerBrush = new(ForegroundColor);
 
             // Draw the shadow of the block
-            using Pen shadowPen = new(Color.FromArgb(72, _foreColor), 3);
-            // using Brush shadowBack = new SolidBrush(Color.FromArgb(36, _foreColor));
-            using Brush shadowBrush = new SolidBrush(Color.FromArgb(72, GetColor(_currentBlock.BlockType)));
+            using Pen shadowPen = new(Color.FromArgb(72, ForegroundColor), 3);
+            // using SolidBrush shadowBack = new(Color.FromArgb(36, _foreColor));
+            using SolidBrush shadowBrush = new(Color.FromArgb(72, GetColor(_currentBlock.BlockType)));
             Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
             FallBottom(block);
             foreach (var placeholder in block.Placeholders)
@@ -105,8 +105,8 @@ namespace Tetris
             }
 
             // Draw the block
-            using Pen pen = new(_foreColor, 3);
-            using Brush brush = new SolidBrush(GetColor(_currentBlock.BlockType));
+            using Pen pen = new(ForegroundColor, 3);
+            using SolidBrush brush = new(GetColor(_currentBlock.BlockType));
             foreach (var placeholder in _currentBlock.Placeholders)
             {
                 var x = startX + (placeholder.x + pos.x) * _blockSize;
@@ -131,8 +131,8 @@ namespace Tetris
             var blockSize = _blockSize * 0.672f;
 
             // Draw the preview border
-            using (Pen previewPen = new(_foreColor, 2))
-            using (Brush backBrush = new SolidBrush(Color.FromArgb(64, _backColor)))
+            using (Pen previewPen = new(ForegroundColor, 2))
+            using (SolidBrush backBrush = new(Color.FromArgb(64, BackgroundColor)))
             {
                 g.FillRectangle(backBrush, startX, startY, blockSize * 4.56f, blockSize * 19.6f);
                 g.DrawRectangle(previewPen, startX, startY, blockSize * 4.56f, blockSize * 19.6f);
@@ -144,9 +144,9 @@ namespace Tetris
             // Draw the preview blocks
             foreach (Block block in _nextBlocks)
             {
-                using Pen pen = new(_foreColor, 1);
-                using Brush brush = new SolidBrush(GetColor(block.BlockType));
-                using Brush centerBrush = new SolidBrush(_foreColor);
+                using Pen pen = new(ForegroundColor, 1);
+                using SolidBrush brush = new(GetColor(block.BlockType));
+                using SolidBrush centerBrush = new(ForegroundColor);
 
                 // Define the offset for the block center
                 float xDiff = 0;
@@ -189,8 +189,8 @@ namespace Tetris
             var blockSize = _blockSize * 0.672f;
 
             // Draw the backup border
-            using (Pen backupPen = new(_foreColor, 2))
-            using (Brush backBrush = new SolidBrush(Color.FromArgb(64, _backColor)))
+            using (Pen backupPen = new(ForegroundColor, 2))
+            using (SolidBrush backBrush = new(Color.FromArgb(64, BackgroundColor)))
             {
                 var w = blockSize * 4.56f;
                 startX -= w;
@@ -205,9 +205,9 @@ namespace Tetris
 
             if (block is not null)
             {
-                using Pen pen = new(_foreColor, 1);
-                using Brush brush = new SolidBrush(GetColor(block.BlockType));
-                using Brush centerBrush = new SolidBrush(_foreColor);
+                using Pen pen = new(ForegroundColor, 1);
+                using SolidBrush brush = new(GetColor(block.BlockType));
+                using SolidBrush centerBrush = new(ForegroundColor);
 
                 // Define the offset for the block center
                 float xDiff = 0;
@@ -246,13 +246,13 @@ namespace Tetris
             var thickness = _blockSize * 0.54f;  // Ring thickness
 
             var startX = (ClientSize.Width + _Columns * _blockSize + Padding.Right) * 0.5f;
-            var startY = (ClientSize.Height - _Rows * _blockSize + Padding.Top) *0.5f + _blockSize * 14.9f;
+            var startY = (ClientSize.Height - _Rows * _blockSize + Padding.Top) * 0.5f + _blockSize * 14.9f;
             startX += _blockSize * 0.672f * 2.28f - radius;
 
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             // Draw the background ring
-            g.DrawEllipse(new Pen(Color.FromArgb(64, _foreColor), thickness), startX, startY, radius * 2, radius * 2);
+            g.DrawEllipse(new Pen(Color.FromArgb(64, ForegroundColor), thickness), startX, startY, radius * 2, radius * 2);
 
             // Draw the progress ring
             float sweepAngle = 360 * AutoEatProgressPercent();
@@ -260,7 +260,7 @@ namespace Tetris
             g.DrawArc(pen, startX, startY, radius * 2, radius * 2, -90, sweepAngle);
         }
 
-        private static Color GetColor(Block.E_BlockType type) => UsingDark ? (type switch
+        private Color GetColor(Block.E_BlockType type) => UsingDark ? (type switch
         {
             // Select the color based on the block type for light mode
             Block.E_BlockType.I => Color.FromArgb(121, 184, 169), // 青绿
@@ -270,7 +270,7 @@ namespace Tetris
             Block.E_BlockType.L => Color.FromArgb(220, 130, 70),  // 橙红色
             Block.E_BlockType.S => Color.FromArgb(52, 139, 43),   // 深绿色
             Block.E_BlockType.Z => Color.FromArgb(201, 70, 90),   // 红色
-            _ => throw new ArgumentOutOfRangeException(nameof(type)),
+            _ => BackgroundColor,
         }) : (type switch
         {
             // Select the color based on the block type for light mode
@@ -281,7 +281,7 @@ namespace Tetris
             Block.E_BlockType.L => Color.FromArgb(220, 130, 70),  // 橙红色
             Block.E_BlockType.S => Color.FromArgb(130, 170, 110), // 绿松石色
             Block.E_BlockType.Z => Color.FromArgb(230, 100, 100), // 红色
-            _ => throw new ArgumentOutOfRangeException(nameof(type)),
+            _ => BackgroundColor,
         });
     }
 }
