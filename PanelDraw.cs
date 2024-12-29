@@ -59,20 +59,36 @@
 
         private void DrawBlock(Graphics g)
         {
-            if (_currentBlock == null)
-            {
-                return;
-            }
-
             var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
             var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
 
             var pos = _currentBlock.Pos;
+            var radius = _blockSize * 0.125f;
+            using Brush centerBrush = new SolidBrush(Color.Black);
+
+            // Draw the shadow of the block
+            using Pen shadowPen = new(Color.FromArgb(72, Color.Black), 3);
+            using Brush shadowBack = new SolidBrush(Color.FromArgb(36, Color.Black));
+            using Brush shadowBrush = new SolidBrush(Color.FromArgb(72, GetColor(_currentBlock.BlockType)));
+            Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
+            FallBottom(block);
+            foreach (var placeholder in block.Placeholders)
+            {
+                var x = startX + (placeholder.x + block.Pos.x) * _blockSize;
+                var y = startY + (placeholder.y + block.Pos.y) * _blockSize;
+                // Draw the shadow grid
+                g.FillRectangle(shadowBack, x, y, _blockSize, _blockSize);
+                g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
+                g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
+                // Draw the in the center of the shadow center
+                var shadowCenterX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
+                var shadowCenterY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
+                g.FillEllipse(centerBrush, shadowCenterX - radius, shadowCenterY - radius, radius * 2, radius * 2);
+            }
 
             // Draw the block
             using Pen pen = new(Color.Black, 3);
             using Brush brush = new SolidBrush(GetColor(_currentBlock.BlockType));
-            using Brush centerBrush = new SolidBrush(Color.Black);
             foreach (var placeholder in _currentBlock.Placeholders)
             {
                 var x = startX + (placeholder.x + pos.x) * _blockSize;
@@ -82,31 +98,10 @@
                 g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                 g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
             }
-            // Draw the block center
+            // Draw the in the center of the block
             var centerX = startX + (_currentBlock.RotateCenter.x + pos.x) * _blockSize;
             var centerY = startY + (_currentBlock.RotateCenter.y + pos.y) * _blockSize;
-            // Black point in the center of the block
-            var radius = _blockSize * 0.125f;
             g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
-
-            // Draw the shadow of the block
-            using Pen shadowPen = new(Color.FromArgb(96, Color.Black), 2);
-            using Brush shadowBrush = new SolidBrush(Color.FromArgb(96, GetColor(_currentBlock.BlockType)));
-            Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
-            FallBottom(block);
-            foreach (var placeholder in block.Placeholders)
-            {
-                var x = startX + (placeholder.x + block.Pos.x) * _blockSize;
-                var y = startY + (placeholder.y + block.Pos.y) * _blockSize;
-                // Draw the shadow grid
-                g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
-                g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
-                // Draw the shadow center
-                centerX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
-                centerY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
-                // Black point in the center of the shadow
-                g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
-            }
         }
 
         private void DrawNextBlockPreview(Graphics g)
@@ -169,7 +164,7 @@
             g.DrawEllipse(new Pen(Color.LightGray, thickness), startX, startY, radius * 2, radius * 2);
 
             // Draw the progress ring
-            float sweepAngle = 360 * _progress / TotalProgress;
+            float sweepAngle = 360 * AutoEatProgressPercent();
             using var pen = new Pen(Color.Blue, thickness);
             g.DrawArc(pen, startX, startY, radius * 2, radius * 2, -90, sweepAngle);
         }

@@ -7,11 +7,13 @@ namespace Tetris
         private readonly Timer _timer = new();
         private const int TimerInterval = 16;   // 62.5 FPS
 
-        private float _fallSpeed = 0.06f; // grid per frame
+        private float _fallSpeed = 0.05f;       // grid per frame
+        private float _keyFallSpeedUp = 0.6f;   // grid per frame
 
-        private int _progress = 0; // in ms
-        private const bool _timerEnabled = true;
-        private const int TotalProgress = 600;  // 0.6s
+        private int _autoEatProgress = 0;           // in ms
+        private int _autoEatTotalProgress = 600;    // 0.6s
+        private bool _autoEatEnabled = true;
+        
 
         private void InitializeTimer()
         {
@@ -22,19 +24,49 @@ namespace Tetris
 
         private void TimerTick(object? sender, EventArgs e)
         {
-            //_progress += TimerInterval;
-            //if (_progress >= TotalProgress)
-            //{
-            //    _progress = 0;
-            //    _timer.Stop();
-            //}
-
-            if (_fallSpeed > 0 && !TryMoveBlockUpOrDown(_fallSpeed))
+            // Auto be eaten
+            if (_autoEatEnabled)
             {
-                FallBottom();
+                if (CanFall() == 0)
+                {
+                    _autoEatProgress += _timer.Interval;
+                    if (_autoEatProgress >= _autoEatTotalProgress)
+                    {
+                        EatBlock();
+                        ResetAutoEatProceed();
+                    }
+                }
+                else
+                {
+                    ResetAutoEatProceed();
+                }
+            }
+
+            // Auto falling
+            if (_fallSpeed > 0)
+            {
+                // Check if press the key for falling
+                var pressed = false;
+                foreach (var key in _canFallKeys)
+                {
+                    if (_pressedKeys.Contains(key))
+                    {
+                        pressed = true;
+                        break;
+                    }
+                }
+
+                if (!TryMoveBlockUpOrDown(_fallSpeed + (pressed ? _keyFallSpeedUp : 0)))
+                {
+                    FallBottom();
+                }
             }
 
             this.Invalidate(); // Redraw the panel
         }
+
+        private void ResetAutoEatProceed() { _autoEatProgress = 0; }
+
+        private float AutoEatProgressPercent() => (float)_autoEatProgress / _autoEatTotalProgress;
     }
 }
