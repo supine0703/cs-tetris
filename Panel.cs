@@ -11,7 +11,7 @@ namespace Tetris
             public bool hasBlock = hasBlock;
             public Color color = color;
 
-            public GridInfo() : this(false, Color.White) { }
+            public GridInfo() : this(false, _backColor) { }
         }
 
         private const int _MarginRowNum = 4;
@@ -22,6 +22,7 @@ namespace Tetris
         private readonly List<GridInfo[]> _gridInfo = new(_Rows + _MarginRowNum);
         private readonly Queue<Block> _nextBlocks = new(_PrimaryBlockSize);
         private Block _currentBlock;
+        private Block? _backupBlock;
 
         public Panel()
         {
@@ -84,6 +85,7 @@ namespace Tetris
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
+            DrawBackground(e.Graphics);
             DrawGrid(e.Graphics);
             DrawBlock(e.Graphics);
             DrawBeEatProgress(e.Graphics);
@@ -107,6 +109,9 @@ namespace Tetris
 
         // === Key for dropping ===
         private readonly HashSet<Keys> _canDropKeys = [Keys.W, Keys.Up];
+
+        // === Key for backup ===
+        private readonly HashSet<Keys> _canBackupKeys = [Keys.Space];
 
         // Allow the arrow keys to be used in the game
         protected override bool ProcessDialogKey(Keys key)
@@ -157,6 +162,11 @@ namespace Tetris
                 else if (_canDropKeys.Contains(e.KeyCode))
                 {
                     changed = DropBlock();
+                }
+                // Backup
+                else if (_canBackupKeys.Contains(e.KeyCode))
+                {
+                    changed = TryBackupBlock();
                 }
 
                 // Reset drop progress

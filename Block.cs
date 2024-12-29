@@ -16,7 +16,9 @@
 
     internal partial class Block(Block.E_BlockType type, Block.E_FacingDirection facing, Position pos)
     {
-        public Block(E_BlockType type) : this(type, E_FacingDirection.Up, new Position(3, -3)) { }
+        static public readonly Position DefaultPos = new(3, -3);
+
+        public Block(E_BlockType type) : this(type, E_FacingDirection.Up, DefaultPos) { }
 
         public enum E_BlockType
         {
@@ -36,7 +38,7 @@
         private BlockData _blockData = new(type, facing);
         private Position _pos = pos;
 
-        public Position Pos => _pos;
+        public Position Pos { get => _pos; set => _pos = value; }
         public E_BlockType BlockType => _blockData.BlockType;
         public E_FacingDirection FacingDirection => _blockData.FacingDirection;
         public Position RotateCenter => _blockData.RotateCenter;

@@ -103,6 +103,22 @@ namespace Tetris
             }
         }
 
+        private bool TryBackupBlock()
+        {
+            if (_backupBlock is null)
+            {
+                _backupBlock = _currentBlock;
+                RandomBlock();
+            }
+            else
+            {
+                (_backupBlock, _currentBlock) = (_currentBlock, _backupBlock);
+            }
+            _backupBlock.Pos = DefaultPos;
+
+            return true;
+        }
+
         private bool TryMoveBlockLeftOrRight(int direction)
         {
             _currentBlock.MoveLeftOrRight(direction);
