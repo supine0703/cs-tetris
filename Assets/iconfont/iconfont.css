@@ -1,0 +1,27 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 4798362 */
+  src: url('iconfont.woff2?t=1735536609856') format('woff2'),
+       url('iconfont.woff?t=1735536609856') format('woff'),
+       url('iconfont.ttf?t=1735536609856') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-lzl-tetris-1:before {
+  content: "\e615";
+}
+
+.icon-lzl-tetris-2:before {
+  content: "\e616";
+}
+
+.icon-lzl-tetris-3:before {
+  content: "\e617";
+}
+

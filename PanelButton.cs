@@ -30,6 +30,7 @@ namespace Tetris
 
             public CustonButton()
             {
+                this.TextAlign = ContentAlignment.MiddleCenter;
                 this.TabStop = false;
                 this.SetStyle(ControlStyles.Selectable, false);
             }

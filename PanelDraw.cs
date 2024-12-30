@@ -8,7 +8,7 @@ namespace Tetris
         private Size PanelSize => new(ClientSize.Width - Padding.Horizontal, ClientSize.Height - Padding.Vertical);
 
         private bool UsingDark { get; set; } = true;
-        private Color BackgroundColor => UsingDark ? Color.Black : Color.FromArgb(242, 242, 242);
+        private Color BackgroundColor => UsingDark ? Color.Black : Color.FromArgb(248, 247, 247);
         private Color ForegroundColor => UsingDark ? Color.White : Color.Black;
         // Define the gradient colors
         private Color BackgroundColor_1 => UsingDark ? Color.FromArgb(0, 120, 80) : Color.FromArgb(144, 238, 144);
@@ -34,12 +34,12 @@ namespace Tetris
             var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
             var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
 
-            using (Pen outerPen = new(ForegroundColor, 3)) // Outer border pen with .. color
+            using (Pen outerPen = new(ForegroundColor, 4)) // Outer border pen with .. color
             using (Pen innerPen = new(Color.FromArgb(128, 128, 128, 128))) // Inner border pen with gray semi-transparency
             using (SolidBrush backBrush = new(BackgroundColor)) // Background brush with white color
             {
                 // Draw outer border (around the entire grid)
-                g.DrawRectangle(outerPen, startX, startY - 1, _Columns * _blockSize + 1, _Rows * _blockSize + 1);
+                g.DrawRectangle(outerPen, startX - 2, startY - 2, _Columns * _blockSize + 4, _Rows * _blockSize + 4);
 
                 // Fill the background of the grid
                 g.FillRectangle(backBrush, startX, startY, _Columns * _blockSize, _Rows * _blockSize);
@@ -82,44 +82,46 @@ namespace Tetris
 
             var pos = _currentBlock.Pos;
             var radius = _blockSize * 0.125f;
-            using SolidBrush centerBrush = new(ForegroundColor);
 
             // Draw the shadow of the block
-            using Pen shadowPen = new(Color.FromArgb(72, ForegroundColor), 3);
-            // using SolidBrush shadowBack = new(Color.FromArgb(36, _foreColor));
-            using SolidBrush shadowBrush = new(Color.FromArgb(72, GetColor(_currentBlock.BlockType)));
-            Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
-            FallBottom(block);
-            foreach (var placeholder in block.Placeholders)
+            using (Pen shadowPen = new(Color.FromArgb(72, ForegroundColor), 3))
+            using (SolidBrush shadowBrush = new(Color.FromArgb(72, GetColor(_currentBlock.BlockType))))
+            using (SolidBrush centerBrush = new(Color.FromArgb(72, ForegroundColor)))
             {
-                var x = startX + (placeholder.x + block.Pos.x) * _blockSize;
-                var y = startY + (placeholder.y + block.Pos.y) * _blockSize;
-                // Draw the shadow grid
-                // g.FillRectangle(shadowBack, x, y, _blockSize, _blockSize);
-                g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
-                g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
-                // Draw the in the center of the shadow center
-                var shadowCenterX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
-                var shadowCenterY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
-                g.FillEllipse(centerBrush, shadowCenterX - radius, shadowCenterY - radius, radius * 2, radius * 2);
+                Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
+                FallBottom(block);
+                foreach (var placeholder in block.Placeholders)
+                {
+                    var x = startX + (placeholder.x + block.Pos.x) * _blockSize;
+                    var y = startY + (placeholder.y + block.Pos.y) * _blockSize;
+                    // Draw the shadow grid
+                    g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
+                    g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
+                    // Draw the in the center of the shadow center
+                    var shadowCenterX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
+                    var shadowCenterY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
+                    g.FillEllipse(centerBrush, shadowCenterX - radius, shadowCenterY - radius, radius * 2, radius * 2);
+                }
             }
-
             // Draw the block
-            using Pen pen = new(ForegroundColor, 3);
-            using SolidBrush brush = new(GetColor(_currentBlock.BlockType));
-            foreach (var placeholder in _currentBlock.Placeholders)
+            using (Pen pen = new(ForegroundColor, 3))
+            using (SolidBrush brush = new(GetColor(_currentBlock.BlockType)))
+            using (SolidBrush centerBrush = new(ForegroundColor))
             {
-                var x = startX + (placeholder.x + pos.x) * _blockSize;
-                var y = startY + (placeholder.y + pos.y) * _blockSize;
+                foreach (var placeholder in _currentBlock.Placeholders)
+                {
+                    var x = startX + (placeholder.x + pos.x) * _blockSize;
+                    var y = startY + (placeholder.y + pos.y) * _blockSize;
 
-                // Draw the block grid
-                g.FillRectangle(brush, x, y, _blockSize, _blockSize);
-                g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
+                    // Draw the block grid
+                    g.FillRectangle(brush, x, y, _blockSize, _blockSize);
+                    g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
+                }
+                // Draw the in the center of the block
+                var centerX = startX + (_currentBlock.RotateCenter.x + pos.x) * _blockSize;
+                var centerY = startY + (_currentBlock.RotateCenter.y + pos.y) * _blockSize;
+                g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
             }
-            // Draw the in the center of the block
-            var centerX = startX + (_currentBlock.RotateCenter.x + pos.x) * _blockSize;
-            var centerY = startY + (_currentBlock.RotateCenter.y + pos.y) * _blockSize;
-            g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
         }
 
         private void DrawNextBlockPreview(Graphics g)

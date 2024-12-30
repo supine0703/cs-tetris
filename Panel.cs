@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Drawing.Text;
+using System.Reflection;
 using Timer = System.Windows.Forms.Timer;
 
 namespace Tetris
@@ -22,9 +24,16 @@ namespace Tetris
         private readonly Queue<Block> _nextBlocks = new(_PrimaryBlockSize);
         private Block _currentBlock;
         private Block? _backupBlock;
+        
+        private bool Pause { get; set; } = false;
+
+        private PrivateFontCollection _pfc = new();
 
         public Panel()
         {
+            // Initialize the iconfont
+            InitializeIconfont();
+
             // Initialize the randomizer
             InitializeRandomizer();
 
@@ -53,6 +62,31 @@ namespace Tetris
             this.KeyDown += (sender, e) => KeyDownHandler(e);
             this.KeyUp += (sender, e) => KeyUpHandler(e);
             this.DoubleBuffered = true;
+        }
+
+        private void InitializeIconfont()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceNames = assembly.GetManifestResourceNames();
+
+            // Find the iconfont file in the resources
+            var iconfontName = resourceNames.FirstOrDefault(name => name.Contains("iconfont")) 
+                ?? throw new Exception("Iconfont file not found.");
+
+            using var fontStream = assembly.GetManifestResourceStream(iconfontName)
+                ?? throw new Exception($"Failed to load the iconfont file: {iconfontName}");
+
+            var fontData = new byte[fontStream.Length];
+            fontStream.Read(fontData, 0, fontData.Length);
+            fontStream.Close();
+
+            unsafe
+            {
+                fixed (byte* ptr = fontData)
+                {
+                    _pfc.AddMemoryFont((IntPtr)ptr, fontData.Length);
+                }
+            }
         }
 
         private void Restart()
@@ -147,7 +181,10 @@ namespace Tetris
                 return;
             }
 
-            if (!_pressedKeys.Contains(e.KeyCode))
+            if (Pause)
+            {
+            }
+            else if (!_pressedKeys.Contains(e.KeyCode))
             {
                 Debug.WriteLine(e.KeyCode);
                 var changed = false;
@@ -188,6 +225,7 @@ namespace Tetris
                     ResetAutoEatProceed();
                 }
             }
+
             _pressedKeys.Add(e.KeyCode);
         }
 
@@ -214,6 +252,13 @@ namespace Tetris
 
         private void PressHorizontalMove()
         {
+            if (Pause)
+            {
+                _safeOfMoveFirts.Stop();
+                _multiMoveTimer.Stop();
+                _pressedKeys.Clear();
+            }
+
             var leftPressed = false;
             foreach (var key in _canMoveLeftKeys)
             {

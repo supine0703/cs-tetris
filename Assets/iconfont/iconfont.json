@@ -1,0 +1,30 @@
+{
+  "id": "4798362",
+  "name": "Tetris",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "980892",
+      "name": "start",
+      "font_class": "lzl-tetris-1",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "980894",
+      "name": "pause",
+      "font_class": "lzl-tetris-2",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "983833",
+      "name": "refush",
+      "font_class": "lzl-tetris-3",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    }
+  ]
+}

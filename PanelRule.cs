@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using static Tetris.Block;
-
-namespace Tetris
+﻿namespace Tetris
 {
     internal partial class Panel
     {

@@ -6,11 +6,23 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\iconfont\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\iconfont\iconfont.ttf" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="BlockData.cs">
       <DependentUpon>Block.cs</DependentUpon>
+    </Compile>
+    <Compile Update="PanelAnimation.cs">
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
     <Compile Update="PanelButton.cs">
       <DependentUpon>Panel.cs</DependentUpon>
