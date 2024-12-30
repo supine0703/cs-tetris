@@ -142,8 +142,14 @@ namespace Tetris
 
         private void KeyDownHandler(KeyEventArgs e)
         {
+            if (e.Modifiers != Keys.None)
+            {
+                return;
+            }
+
             if (!_pressedKeys.Contains(e.KeyCode))
             {
+                Debug.WriteLine(e.KeyCode);
                 var changed = false;
                 // Rotate
                 if (_canRotateLeftKeys.Contains(e.KeyCode))

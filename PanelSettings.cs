@@ -10,6 +10,7 @@ namespace Tetris
         private void InitializeSettings()
         {
             _themeButton.Text = UsingDark ? "Dark" : "Light";
+            _themeButton.TextAlign = ContentAlignment.MiddleCenter;
             //_themeButton.BackColor = Color.Black; // 选择基础背景颜色，这里是黑色
             _themeButton.Click += (sender, e) => ThemeButtonClick();
             this.Controls.Add(_themeButton);
@@ -25,13 +26,15 @@ namespace Tetris
 
             _themeButton.Size = new((int)width, (int)blockSize * 2);
             _themeButton.Location = new((int)startX, (int)startY);
-            _themeButton.Font = new("Arial", blockSize * 0.6f + 1);
+            _themeButton.Font = new Font(_themeButton.Font.FontFamily, blockSize * 0.47f + 1, _themeButton.Font.Style);
         }
 
         private void ThemeButtonClick()
         {
             UsingDark = !UsingDark;
+            _themeButton.UsingDark = UsingDark;
             _themeButton.Text = UsingDark ? "Dark" : "Light";
+            this.Invalidate();
         }
     }
 }

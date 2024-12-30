@@ -5,88 +5,85 @@ namespace Tetris
     internal partial class Panel
     {
         // Custom button class for the theme switch and unable to be selected
-        private class CustonButton : Button
+        private class CustonButton : Label
         {
-            private Color _defaultBackColor = Color.FromArgb(128, 0, 0, 0); // 半透明黑色背景
-            private Color _hoverBackColor = Color.FromArgb(150, 0, 0, 0); // 悬停时更深的灰色
-            private Color _clickBackColor = Color.FromArgb(180, 0, 0, 0); // 点击时更深的灰色
-            private Color _borderColor = Color.FromArgb(128, 192, 192, 192); // 半透明灰白色边框
-            private Color _textColor = Color.FromArgb(128, 255, 255, 255); // 半透明白色字体
+            private enum E_State
+            {
+                Normal, Hover, Pressed,
+            }
+
+            private const int _boardWidth = 3;
+
+            private E_State _state = E_State.Normal;
+
+            public bool UsingDark { get; set; } = true;
+
+            private Color BackgroundColor => _state switch
+            {
+                E_State.Normal => Color.Transparent,
+                E_State.Hover => UsingDark ? Color.FromArgb(37, 0, 0, 0) : Color.FromArgb(37, 255, 255, 255),
+                E_State.Pressed => UsingDark ? Color.FromArgb(73, 0, 0, 0) : Color.FromArgb(73, 255, 255, 255),
+                _ => throw new NotSupportedException(),
+            };
+            private Color ForegroundColor => UsingDark ? Color.White : Color.Black;
+            private Color BoardColor => UsingDark ? Color.White : Color.Black;
 
             public CustonButton()
             {
-                this.SetStyle(ControlStyles.Selectable, false);
-                this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
-                this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
-                this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
                 this.TabStop = false;
-                this.BackColor = Color.Transparent;
-                this.FlatStyle = FlatStyle.Flat;
-                this.FlatAppearance.BorderSize = 0;
+                this.SetStyle(ControlStyles.Selectable, false);
             }
 
-            protected override void OnPaint(PaintEventArgs pevent)
+            protected override void OnPaint(PaintEventArgs e)
             {
-                base.OnPaint(pevent);
+                this.BackColor = BackgroundColor;
+                this.ForeColor = ForegroundColor;
+                base.OnPaint(e);
 
+                // Open the anti-aliasing
+                //e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+                // Create a path for the rounded rectangle
+                int radius = Math.Min(this.Width, this.Height) / 3; // Filet radius
                 GraphicsPath path = new();
-                int radius = 20; // 圆角半径
-                path.AddArc(0, 0, radius, radius, 180, 90);
-                path.AddArc(this.Width - radius - 1, 0, radius, radius, 270, 90);
-                path.AddArc(this.Width - radius - 1, this.Height - radius - 1, radius, radius, 0, 90);
-                path.AddArc(0, this.Height - radius - 1, radius, radius, 90, 90);
+                path.AddArc(new Rectangle(0, 0, radius, radius), 180, 90);
+                path.AddArc(new Rectangle(this.Width - radius, 0, radius, radius), 270, 90);
+                path.AddArc(new Rectangle(this.Width - radius, this.Height - radius, radius, radius), 0, 90);
+                path.AddArc(new Rectangle(0, this.Height - radius, radius, radius), 90, 90);
                 path.CloseAllFigures();
 
-                this.Region = new Region(path); // 裁剪区域，使按钮外观为圆角
+                // Set the region
+                this.Region = new Region(path);
 
-                // 绘制圆角矩形背景
-                using (SolidBrush brush = new(this.BackColor))
-                {
-                    pevent.Graphics.FillPath(brush, path);
-                }
-
-                // 绘制半透明边框
-                using (Pen pen = new(_borderColor, 2))
-                {
-                    pevent.Graphics.DrawPath(pen, path);
-                }
-
-                // 绘制按钮文本
-                TextRenderer.DrawText(pevent.Graphics, this.Text, this.Font, this.ClientRectangle, _textColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                // Draw the background
+                using Pen pen = new(BoardColor, _boardWidth);
+                // Set the border to be drawn inside the control to reduce jagging
+                pen.Alignment = PenAlignment.Inset;
+                e.Graphics.DrawPath(pen, path);
             }
 
             protected override void OnMouseEnter(EventArgs e)
             {
+                _state = E_State.Hover;
                 base.OnMouseEnter(e);
-                this.BackColor = _hoverBackColor;
             }
 
             protected override void OnMouseLeave(EventArgs e)
             {
+                _state = E_State.Normal;
                 base.OnMouseLeave(e);
-                this.BackColor = _defaultBackColor;
             }
 
-            protected override void OnMouseDown(MouseEventArgs mevent)
+            protected override void OnMouseDown(MouseEventArgs e)
             {
-                base.OnMouseDown(mevent);
-                this.BackColor = _clickBackColor;
+                _state = E_State.Pressed;
+                base.OnMouseDown(e);
             }
 
-            protected override void OnMouseUp(MouseEventArgs mevent)
+            protected override void OnMouseUp(MouseEventArgs e)
             {
-                base.OnMouseUp(mevent);
-                this.BackColor = _hoverBackColor;
-            }
-
-            public new Color BackColor
-            {
-                get { return _defaultBackColor; }
-                set
-                {
-                    _defaultBackColor = Color.FromArgb(128, value); // 更新透明度和背景颜色
-                    this.Invalidate();
-                }
+                _state = E_State.Hover;
+                base.OnMouseUp(e);
             }
         }
     }
