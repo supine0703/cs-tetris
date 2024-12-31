@@ -6,7 +6,7 @@
         private List<T> _items;
         private Queue<int> _bagIndexs;
 
-        public BagRandomizer() : this(new List<T>()) { }
+        public BagRandomizer() : this([]) { }
         public BagRandomizer(Array items) : this(items.Cast<T>().ToList()) { }
         public BagRandomizer(List<T> items)
         {

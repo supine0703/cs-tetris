@@ -32,6 +32,7 @@ namespace Tetris
 
         private void StartCflAnimation(List<Rectangle> rectangles, Action? onAnimationEnds = null, int frame = 0)
         {
+            _onCflAnimationEnd?.Invoke();
             _cflAnimationCurrentFrame = frame;
             _onCflAnimationEnd = onAnimationEnds;
 
@@ -60,7 +61,7 @@ namespace Tetris
                 return;
             }
 
-            for (int i = 0; i < _cflRects.Count; i++)
+            foreach (var i in Enumerable.Range(0, _cflRects.Count))
             {
                 var rect = _cflRects[i];
                 using (GraphicsPath path = new())
@@ -104,51 +105,6 @@ namespace Tetris
                 // Update the rectangle
                 _cflRects[i] = rect;
             }
-
-            //// The max limit of the gradient radius
-            //const float RadiusLimit = 0.659f;
-
-            //var gradientRadius = (float)_cflAnimationCurrentFrame / _cflTotalAnimationFrames;
-            //if (gradientRadius > RadiusLimit)
-            //{
-            //    gradientRadius = RadiusLimit;
-            //}
-
-            //for (int i = 0; i < _cflRects.Count; i++)
-            //{
-            //    var rect = _cflRects[i];
-
-            //    // The width and height of the gradient ellipse
-            //    var widthRadius = gradientRadius * gradientRadius / RadiusLimit * 1.273f;
-            //    var heightRadius = widthRadius * rect.Height / rect.Width * 0.512f;
-
-            //    using (GraphicsPath path = new())
-            //    {
-            //        path.AddRectangle(rect);
-            //        using PathGradientBrush brush = new(path)
-            //        {
-            //            CenterPoint = new(rect.X + rect.Width / 2, rect.Y + rect.Height / 2),
-            //            CenterColor = Color.FromArgb(242, 252, 249, 176),
-            //            SurroundColors = [Color.FromArgb(0, 255, 223, 186)],
-            //            FocusScales = new(widthRadius, heightRadius),
-            //        };
-            //        g.FillRectangle(brush, rect);
-            //    }
-
-            //    // Fold lengthwise to disappear
-            //    if (gradientRadius == RadiusLimit)
-            //    {
-            //        // Keep the center position of the rectangle
-            //        var progress = _cflAnimationCurrentFrame - (int)(_cflTotalAnimationFrames * gradientRadius);
-            //        var shrinkStep = _cflRectHeights[i] / (int)(_cflTotalAnimationFrames * (1 - gradientRadius));
-            //        var newHeight = Math.Max(1, _cflRectHeights[i] - (progress * shrinkStep));
-
-            //        // Update the rectangle
-            //        rect.Y = rect.Top + (rect.Height / 2) - newHeight / 2;
-            //        rect.Height = newHeight;
-            //        _cflRects[i] = rect;
-            //    }
-            //}
         }
     }
 }

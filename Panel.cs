@@ -254,16 +254,7 @@ namespace Tetris
             _pressedKeys.Remove(e.KeyCode);
 
             // Stop the multi move timer
-            var nonMove = true;
-            foreach (var key in _pressedKeys)
-            {
-                if (_canMoveLeftKeys.Contains(key) || _canMoveRightKeys.Contains(key))
-                {
-                    nonMove = false;
-                    break;
-                }
-            }
-            if (nonMove)
+            if (_pressedKeys.All(key => !_canMoveLeftKeys.Contains(key) && !_canMoveRightKeys.Contains(key)))
             {
                 _safeOfMoveFirts.Stop();
                 _multiMoveTimer.Stop();
@@ -279,37 +270,13 @@ namespace Tetris
                 _pressedKeys.Clear();
             }
 
-            var leftPressed = false;
-            foreach (var key in _canMoveLeftKeys)
-            {
-                if (_pressedKeys.Contains(key))
-                {
-                    leftPressed = true;
-                    break;
-                }
-            }
-            var rightPressed = false;
-            foreach (var key in _canMoveRightKeys)
-            {
-                if (_pressedKeys.Contains(key))
-                {
-                    rightPressed = true;
-                    break;
-                }
-            }
-
-            var changed = false;
-            if (leftPressed && !rightPressed)
-            {
-                changed = TryMoveBlockLeftOrRight(-1);
-            }
-            else if (rightPressed && !leftPressed)
-            {
-                changed = TryMoveBlockLeftOrRight(1);
-            }
+            var move = (
+                (_canMoveLeftKeys.Any(key => _pressedKeys.Contains(key)) ? -1 : 0) +
+                (_canMoveRightKeys.Any(key => _pressedKeys.Contains(key)) ? 1 : 0)
+            );
 
             // Reset drop progress
-            if (changed)
+            if (move != 0 && TryMoveBlockLeftOrRight(move))
             {
                 ResetAutoEatProceed();
             }

@@ -47,16 +47,8 @@ namespace Tetris
                 if (_dropGravity > 0)
                 {
                     // Check if press the key for dropping
-                    var pressed = false;
-                    foreach (var key in _canSoftDropKeys)
-                    {
-                        if (_pressedKeys.Contains(key))
-                        {
-                            pressed = true;
-                            break;
-                        }
-                    }
-
+                    var pressed = _canSoftDropKeys.Any(key => _pressedKeys.Contains(key));
+                    
                     if (!TryMoveBlockUpOrDown(_dropGravity + (pressed ? _softDropGravityIncrease : 0)))
                     {
                         DropBottom();
@@ -70,5 +62,32 @@ namespace Tetris
         private void ResetAutoEatProceed() { _autoEatProgress = 0; }
 
         private float AutoEatProgressPercent() => (float)_autoEatProgress / _autoEatTotalProgress;
+    
+        // === For delay to do somethings ===
+        private List<(int frame, Action? action)> _delayToDo = [];
+
+        private void DelayToDo(int frame, Action? action) { _delayToDo.Add((frame, action)); }
+
+        private void DelayToDoNextFrame()
+        {
+            if (_delayToDo.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var i in Enumerable.Range(_delayToDo.Count - 1, 0))
+            {
+                var (frame, action) = _delayToDo[i];
+                if (--frame <= 0)
+                {
+                    action?.Invoke();
+                    _delayToDo.RemoveAt(i);
+                }
+                else
+                {
+                    _delayToDo[i] = (frame, action);
+                }
+            }
+        }
     }
 }
