@@ -83,9 +83,9 @@ namespace Tetris
             var radius = _blockSize * 0.125f;
 
             // Draw the shadow of the block
-            using (Pen shadowPen = new(Color.FromArgb(72, ForegroundColor), 3))
-            using (SolidBrush shadowBrush = new(Color.FromArgb(72, GetColor(_currentBlock.BlockType))))
-            using (SolidBrush centerBrush = new(Color.FromArgb(72, ForegroundColor)))
+            using (Pen shadowPen = new(Color.FromArgb(81, ForegroundColor), 3))
+            using (SolidBrush shadowBrush = new(Color.FromArgb(81, GetColor(_currentBlock.BlockType))))
+            using (SolidBrush centerBrush = new(Color.FromArgb(81, ForegroundColor)))
             {
                 Block block = new(_currentBlock.BlockType, _currentBlock.Orientation, pos);
                 DropBottom(block);
