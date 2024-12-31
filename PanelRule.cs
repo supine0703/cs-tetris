@@ -22,18 +22,18 @@ namespace Tetris
             _nextBlocks.Enqueue(GetRandomBlock());
         }
 
-        private void OnGameOver()
+        private void OnTopOut()
         {
             this.Invalidate();
             _timer.Stop();
             MessageBox.Show("Game Over!");
         }
 
-        private bool CheckGameOver()
+        private bool CheckTopOut()
         {
-            foreach (var grid in _gridInfo[_MarginRowNum - 1])
+            foreach (var cell in _playfieldInfo[_MarginRowNum - 1])
             {
-                if (grid.hasBlock)
+                if (cell.wasOccupied)
                 {
                     return true;
                 }
@@ -43,7 +43,7 @@ namespace Tetris
 
         private bool EatBlock()
         {
-            if (CanFall() > 0)
+            if (CanDrop() > 0)
             {
                 return false;
             }
@@ -52,17 +52,17 @@ namespace Tetris
             {
                 var y = (int)Math.Ceiling(placeholder.y + _currentBlock.Pos.y + _MarginRowNum);
                 var x = (int)Math.Ceiling(placeholder.x + _currentBlock.Pos.x);
-                _gridInfo[y][x].hasBlock = true;
-                _gridInfo[y][x].belongsTo = _currentBlock.BlockType;
+                _playfieldInfo[y][x].wasOccupied = true;
+                _playfieldInfo[y][x].belongsTo = _currentBlock.BlockType;
             }
 
-            // Eliminate full lines
-            EliminateFullLines();
+            // Clear full lines
+            ClearFullLines();
 
             // Check if the game is over
-            if (CheckGameOver())
+            if (CheckTopOut())
             {
-                OnGameOver();
+                OnTopOut();
                 Restart();
                 return true;
             }
@@ -71,13 +71,13 @@ namespace Tetris
             return true;
         }
 
-        private bool DropBlock()
+        private bool HardDropBlock()
         {
-            FallBottom();
+            DropBottom();
             return EatBlock();
         }
 
-        private void EliminateFullLines()
+        private void ClearFullLines()
         {
             HashSet<int> fullLines = [];
             foreach (var placeholder in _currentBlock.Placeholders)
@@ -86,7 +86,7 @@ namespace Tetris
                 var y = (int)Math.Ceiling(placeholder.y + _currentBlock.Pos.y) + _MarginRowNum;
                 foreach (int i in Enumerable.Range(0, _Columns))
                 {
-                    if (!_gridInfo[y][i].hasBlock)
+                    if (!_playfieldInfo[y][i].wasOccupied)
                     {
                         lineFull = false;
                         break;
@@ -103,47 +103,31 @@ namespace Tetris
                 return;
             }
 
-            var width = _Columns * _blockSize + Padding.Horizontal;
+            var width = _Columns * _blockSize;
             var startX = (ClientSize.Width - width) / 2;
             var startY = (ClientSize.Height - (_Rows + (_PrimaryBlockSize - 1) * 2) * _blockSize) / 2;
 
             List<int> lines = [.. fullLines.OrderBy(x => x)];
-
-            List<Rectangle> rectangles = [];
-
-            var currentLine = lines[0];
-            Rectangle currentRect = new(startX, startY + currentLine * _blockSize, width, 0);
-            foreach (var line in lines)
+            StartCflAnimation([.. lines.Select(line =>
             {
-                if (currentLine == line)
+                for (int i = 0; i < _playfieldInfo[line].Length; i++)
                 {
-                    currentRect.Height += _blockSize;
-                    currentLine++;
+                    _playfieldInfo[line][i].belongsTo = Block.E_BlockType.Count;
                 }
-                else
-                {
-                    rectangles.Add(currentRect);
-                    currentRect = new(startX, startY + line * _blockSize, width, _blockSize);
-                    currentLine = line + 1;
-                }
-            }
-            rectangles.Add(currentRect);
-
-            Debug.WriteLine($"{rectangles.Count}");
-
-            StartEflAnimation(rectangles, () =>
+                return new Rectangle(startX, startY + line * _blockSize, width, _blockSize);
+            })], () =>
             {
                 foreach (var line in lines)
                 {
-                    _gridInfo.RemoveAt(line);
-                    _gridInfo.Insert(0, new GridInfo[_Columns]);
+                    _playfieldInfo.RemoveAt(line);
+                    _playfieldInfo.Insert(0, new CellInfo[_Columns]);
                 }
             });
         }
 
-        private bool TryBackupBlock()
+        private bool TryHoldBlock()
         {
-            (_backupBlock, _currentBlock) = (new(_currentBlock.BlockType), _backupBlock);
+            (_holdBlock, _currentBlock) = (new(_currentBlock.BlockType), _holdBlock);
             if (_currentBlock is null)
             {
                 RandomBlock();
@@ -152,25 +136,25 @@ namespace Tetris
             return true;
         }
 
-        private bool TryMoveBlockLeftOrRight(int direction)
+        private bool TryMoveBlockLeftOrRight(int distance)
         {
-            _currentBlock.MoveLeftOrRight(direction);
+            _currentBlock.MoveLeftOrRight(distance);
             if (CheckCollision())
             {
                 // undo the move if there is a collision
-                _currentBlock.MoveLeftOrRight(-direction);
+                _currentBlock.MoveLeftOrRight(-distance);
                 return false;
             }
             return true;
         }
 
-        private bool TryMoveBlockUpOrDown(float direction)
+        private bool TryMoveBlockUpOrDown(float distance)
         {
-            _currentBlock.MoveUpOrDown(direction);
+            _currentBlock.MoveUpOrDown(distance);
             if (CheckCollision())
             {
                 // undo the move if there is a collision
-                _currentBlock.MoveUpOrDown(-direction);
+                _currentBlock.MoveUpOrDown(-distance);
                 return false;
             }
             return true;
@@ -179,7 +163,7 @@ namespace Tetris
         private bool TryLeftRotate()
         {
             _currentBlock.LeftRotate();
-            if (CheckCollision() && !TestKickWall(Block.E_RotateDirection.Left))
+            if (CheckCollision() && !TestWallKick(Block.E_Rotation.Left))
             {
                 // undo the rotation if there is a collision
                 _currentBlock.RightRotate();
@@ -191,7 +175,7 @@ namespace Tetris
         private bool TryRightRotate()
         {
             _currentBlock.RightRotate();
-            if (CheckCollision() && !TestKickWall(Block.E_RotateDirection.Right))
+            if (CheckCollision() && !TestWallKick(Block.E_Rotation.Right))
             {
                 // undo the rotation if there is a collision
                 _currentBlock.LeftRotate();
@@ -200,17 +184,17 @@ namespace Tetris
             return true;
         }
 
-        private bool TestKickWall(Block.E_RotateDirection direction)
+        private bool TestWallKick(Block.E_Rotation direction)
         {
-            foreach (var diffPos in _currentBlock.GetPrevKickWallTable(direction))
+            foreach (var diffPos in _currentBlock.GetPrevWallKickTable(direction))
             {
-                // Coordinates of the kick wall table are different from the block's position,
+                // Coordinates of the wall kick table are different from the block's position,
                 // which is relative to the left-bottom corner, but panel's grid is relative to the left-top corner.
                 // So the X coordinate needs to be Added, and the Y coordinate needs to be subtracted from the block's position.
                 var expectedPos = diffPos;
                 expectedPos.y = -expectedPos.y;
                 expectedPos += _currentBlock.Pos;
-                Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, expectedPos);
+                Block block = new(_currentBlock.BlockType, _currentBlock.Orientation, expectedPos);
                 if (!CheckCollision(block))
                 {
                     _currentBlock = block;
@@ -236,7 +220,7 @@ namespace Tetris
                 }
 
                 // Check if the block collides with another block
-                if (_gridInfo[posY][posX].hasBlock)
+                if (_playfieldInfo[posY][posX].wasOccupied)
                 {
                     return true;
                 }
@@ -244,8 +228,8 @@ namespace Tetris
             return false;
         }
 
-        private float CanFall() => CanFall(_currentBlock);
-        private float CanFall(Block block)
+        private float CanDrop() => CanDrop(_currentBlock);
+        private float CanDrop(Block block)
         {
             var distance = (float)(Math.Ceiling(block.Pos.y) - block.Pos.y);
 
@@ -259,8 +243,8 @@ namespace Tetris
                     y++;
                 }
 
-                // Check if the bottom of the block has space to fall
-                if (y >= _Rows || _gridInfo[y + _MarginRowNum][x].hasBlock)
+                // Check if the bottom of the block has space to drop
+                if (y >= _Rows || _playfieldInfo[y + _MarginRowNum][x].wasOccupied)
                 {
                     return 0;
                 }
@@ -268,11 +252,11 @@ namespace Tetris
             return distance == 0 ? 1 : distance;
         }
 
-        private void FallBottom() { FallBottom(_currentBlock); }
-        private void FallBottom(Block block)
+        private void DropBottom() { DropBottom(_currentBlock); }
+        private void DropBottom(Block block)
         {
             float distance;
-            while ((distance = CanFall(block)) != 0)
+            while ((distance = CanDrop(block)) != 0)
             {
                 block.MoveUpOrDown(distance);
             }

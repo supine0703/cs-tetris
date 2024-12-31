@@ -14,55 +14,55 @@
         public static Position operator -(Position a, Position b) => new(a.x - b.x, a.y - b.y);
     }
 
-    internal partial class Block(Block.E_BlockType type, Block.E_FacingDirection facing, Position pos)
+    internal partial class Block(Block.E_BlockType type, Block.E_Orientation orientation, Position pos)
     {
         static public readonly Position DefaultPos = new(3, -3);
 
-        public Block(E_BlockType type) : this(type, E_FacingDirection.Up, DefaultPos) { }
+        public Block(E_BlockType type) : this(type, E_Orientation.Up, DefaultPos) { }
 
         public enum E_BlockType
         {
             I = 0, O, T, J, L, S, Z, Count,
         }
 
-        public enum E_RotateDirection
+        public enum E_Rotation
         {
             Right = 0, Left, Count,
         }
 
-        public enum E_FacingDirection
+        public enum E_Orientation
         {
             Up = 0, Right, Down, Left, Count,
         }
 
-        private BlockData _blockData = new(type, facing);
+        private BlockData _blockData = new(type, orientation);
         private Position _pos = pos;
 
         public Position Pos => _pos;
         public E_BlockType BlockType => _blockData.BlockType;
-        public E_FacingDirection FacingDirection => _blockData.FacingDirection;
+        public E_Orientation Orientation => _blockData.Orientation;
         public Position RotateCenter => _blockData.RotateCenter;
         public Position[] Placeholders => _blockData.Placeholders;
 
-        public Position[] GetPrevKickWallTable(E_RotateDirection direction)
+        public Position[] GetPrevWallKickTable(E_Rotation rotation)
         {
-            if (direction != E_RotateDirection.Left && direction != E_RotateDirection.Right)
+            if (rotation != E_Rotation.Left && rotation != E_Rotation.Right)
             {
                 throw new ArgumentException("Invalid direction");
             }
 
-            var prevI = (int)_blockData.FacingDirection;
-            prevI += direction == E_RotateDirection.Left ? 1 : (int)E_FacingDirection.Count - 1;
-            prevI %= (int)E_FacingDirection.Count;
-            return _blockData.AllKickWallTable[((int)direction * (int)E_FacingDirection.Count) + prevI];
+            var prevI = (int)_blockData.Orientation;
+            prevI += rotation == E_Rotation.Left ? 1 : (int)E_Orientation.Count - 1;
+            prevI %= (int)E_Orientation.Count;
+            return _blockData.AllWallKickTable[((int)rotation * (int)E_Orientation.Count) + prevI];
         }
-        public Position[] GetCurrKickWallTable(E_RotateDirection direction)
+        public Position[] GetCurrWallKickTable(E_Rotation rotation)
         {
-            if (direction != E_RotateDirection.Left && direction != E_RotateDirection.Right)
+            if (rotation != E_Rotation.Left && rotation != E_Rotation.Right)
             {
                 throw new ArgumentException("Invalid direction");
             }
-            return _blockData.AllKickWallTable[((int)direction * (int)E_FacingDirection.Count) + (int)_blockData.FacingDirection];
+            return _blockData.AllWallKickTable[((int)rotation * (int)E_Orientation.Count) + (int)_blockData.Orientation];
         }
 
         public void RightRotate() { _blockData.RightRotate(); }

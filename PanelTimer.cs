@@ -7,8 +7,8 @@ namespace Tetris
         private readonly Timer _timer = new();
         private const int TimerInterval = 16;   // 62.5 FPS
 
-        private float _fallSpeed = 0.05f;       // grid per frame
-        private float _keyFallSpeedUp = 0.6f;   // grid per frame
+        private float _dropGravity = 0.05f;               // cell per frame
+        private float _softDropGravityIncrease = 0.59f;   // cell per frame (0.64 * 62.5 = 40 cell per s)
 
         private int _autoEatProgress = 0;           // in ms
         private int _autoEatTotalProgress = 600;    // 0.6s
@@ -28,7 +28,7 @@ namespace Tetris
                 // Auto be eaten
                 if (_autoEatEnabled)
                 {
-                    if (CanFall() == 0)
+                    if (CanDrop() == 0)
                     {
                         _autoEatProgress += _timer.Interval;
                         if (_autoEatProgress >= _autoEatTotalProgress)
@@ -43,12 +43,12 @@ namespace Tetris
                     }
                 }
 
-                // Auto falling
-                if (_fallSpeed > 0)
+                // Auto dropping
+                if (_dropGravity > 0)
                 {
-                    // Check if press the key for falling
+                    // Check if press the key for dropping
                     var pressed = false;
-                    foreach (var key in _canFallKeys)
+                    foreach (var key in _canSoftDropKeys)
                     {
                         if (_pressedKeys.Contains(key))
                         {
@@ -57,9 +57,9 @@ namespace Tetris
                         }
                     }
 
-                    if (!TryMoveBlockUpOrDown(_fallSpeed + (pressed ? _keyFallSpeedUp : 0)))
+                    if (!TryMoveBlockUpOrDown(_dropGravity + (pressed ? _softDropGravityIncrease : 0)))
                     {
-                        FallBottom();
+                        DropBottom();
                     }
                 }
             }

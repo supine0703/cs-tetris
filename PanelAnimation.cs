@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Linq;
 
 namespace Tetris
 {
@@ -13,126 +14,139 @@ namespace Tetris
                 return;
             }
 
-            EflAnimationNextFrame();
+            CflAnimationNextFrame();
         }
 
         private void DrawAllAnimationFrame(Graphics g)
         {
-            DrawEflAnimationFrame(g);
+            DrawCflAnimationFrame(g);
         }
 
-        // === Eliminate Full Lines Animation ===
-        private const int _eflTotalAnimationFrames = 120;
-        private int _eflAnimationCurrentFrame = _eflTotalAnimationFrames;
-        private List<Rectangle> _eflRects = [];
-        private List<int> _eflRectHeights = [];
-        private Action? _onEflAnimationEnd = null;
+        // === Clear Full Lines Animation ===
+        private const int _cflTotalAnimationFrames = 16;
+        private int _cflAnimationCurrentFrame = _cflTotalAnimationFrames;
+        private List<Rectangle> _cflRects = [];
+        private List<Size> _cflSizes = [];
+        private List<int> _cflRectHeights = [];
+        private Action? _onCflAnimationEnd = null;
 
-        private void StartEflAnimation(List<Rectangle> rectangles, Action? onAnimationEnds = null, int frame = 0)
+        private void StartCflAnimation(List<Rectangle> rectangles, Action? onAnimationEnds = null, int frame = 0)
         {
-            _eflAnimationCurrentFrame = frame;
-            _onEflAnimationEnd = onAnimationEnds;
+            _cflAnimationCurrentFrame = frame;
+            _onCflAnimationEnd = onAnimationEnds;
 
-            _eflRects = new(rectangles);
-            _eflRectHeights = _eflRects.Select(r => r.Height).ToList();
+            _cflRects = new(rectangles);
+            _cflSizes = _cflRects.Select(r => r.Size).ToList();
+            _cflRectHeights = _cflRects.Select(r => r.Height).ToList();
         }
 
-        private void EflAnimationNextFrame()
+        private void CflAnimationNextFrame()
         {
-            if (_eflAnimationCurrentFrame < _eflTotalAnimationFrames)
+            if (_cflAnimationCurrentFrame < _cflTotalAnimationFrames)
             {
-                _eflAnimationCurrentFrame++;
-                if (_eflAnimationCurrentFrame == _eflTotalAnimationFrames)
+                _cflAnimationCurrentFrame++;
+                if (_cflAnimationCurrentFrame == _cflTotalAnimationFrames)
                 {
-                    _onEflAnimationEnd?.Invoke();
+                    _onCflAnimationEnd?.Invoke();
+                    _onCflAnimationEnd = null;
                 }
             }
         }
 
-        private void DrawEflAnimationFrame(Graphics g)
+        private void DrawCflAnimationFrame(Graphics g)
         {
-            if (_eflAnimationCurrentFrame < 0 || _eflAnimationCurrentFrame >= _eflTotalAnimationFrames)
+            if (_cflAnimationCurrentFrame < 0 || _cflAnimationCurrentFrame >= _cflTotalAnimationFrames)
             {
                 return;
             }
 
-            // The max limit of the gradient radius
-            const float RadiusLimit = 0.659f;
-
-            var gradientRadius = (float)_eflAnimationCurrentFrame / _eflTotalAnimationFrames;
-            if (gradientRadius > RadiusLimit)
+            for (int i = 0; i < _cflRects.Count; i++)
             {
-                gradientRadius = RadiusLimit;
-            }
-
-            for (int i = 0; i < _eflRects.Count; i++)
-            {
-                var rect = _eflRects[i];
-
-                Debug.WriteLine($"{rect}");
-
-                // The width and height of the gradient ellipse
-                var widthRadius = gradientRadius * gradientRadius / RadiusLimit * 1.273f;
-                var heightRadius = widthRadius * rect.Height / rect.Width * 0.512f;
-
+                var rect = _cflRects[i];
                 using (GraphicsPath path = new())
                 {
-                    path.AddRectangle(rect);
+                    var tempRect = rect;
+                    var widthRatio = (float)rect.Width / _cflSizes[i].Width;
+                    var heightRatio = (float)rect.Height / _cflSizes[i].Height;
+                    tempRect.Width += (int)(_blockSize * 2 * widthRatio);
+                    tempRect.Height += (int)(_blockSize * 2 * heightRatio);
+                    tempRect.X -= (int)(_blockSize * widthRatio);
+                    tempRect.Y -= (int)(_blockSize * heightRatio);
+
+                    path.AddRectangle(tempRect);
                     using PathGradientBrush brush = new(path)
                     {
                         CenterPoint = new(rect.X + rect.Width / 2, rect.Y + rect.Height / 2),
-                        CenterColor = Color.FromArgb(242, 252, 249, 176),
+                        CenterColor = Color.FromArgb(255, 252, 249, 176),
                         SurroundColors = [Color.FromArgb(0, 255, 223, 186)],
-                        FocusScales = new(widthRadius, heightRadius),
+                        FocusScales = new((float)rect.Width / tempRect.Width, (float)rect.Height / tempRect.Height),
                     };
-                    g.FillRectangle(brush, rect);
+                    g.FillRectangle(brush, tempRect);
                 }
 
-                // Fold lengthwise to disappear
-                if (gradientRadius == RadiusLimit)
-                {
-                    // Keep the center position of the rectangle
-                    var progress = _eflAnimationCurrentFrame - (int)(_eflTotalAnimationFrames * gradientRadius);
-                    var shrinkStep = _eflRectHeights[i] / (int)(_eflTotalAnimationFrames * (1 - gradientRadius));
-                    var newHeight = Math.Max(1, _eflRectHeights[i] - (progress * shrinkStep));
+                // The progress of the animation is first fast and then slow
+                var progress = Math.Sqrt(_cflAnimationCurrentFrame) * Math.Sqrt(_cflTotalAnimationFrames - 1);
 
-                    // Update the rectangle
-                    rect.Y = rect.Top + (rect.Height / 2) - newHeight / 2;
-                    rect.Height = newHeight;
-                    _eflRects[i] = rect;
-                }
+                // It compresses vertically and grows horizontall
+                var heightStep = (float)_cflSizes[i].Height / (_cflTotalAnimationFrames - 1);
+                var newHeight = Math.Max(1, _cflSizes[i].Height - (int)(progress * heightStep));
+
+                var widthStep = (float)_cflSizes[i].Width * 0.391 / (_cflTotalAnimationFrames - 1);
+                var newWidth = _cflSizes[i].Width + (int)(progress * widthStep);
+
+                // Keep the center position of the rectangle
+                rect.Y = rect.Top + (rect.Height / 2) - newHeight / 2;
+                rect.Height = newHeight;
+
+                rect.X = rect.Left + (rect.Width / 2) - newWidth / 2;
+                rect.Width = newWidth;
+
+                // Update the rectangle
+                _cflRects[i] = rect;
             }
 
-            //foreach (var rect in _eflRects)
+            //// The max limit of the gradient radius
+            //const float RadiusLimit = 0.659f;
+
+            //var gradientRadius = (float)_cflAnimationCurrentFrame / _cflTotalAnimationFrames;
+            //if (gradientRadius > RadiusLimit)
             //{
+            //    gradientRadius = RadiusLimit;
+            //}
+
+            //for (int i = 0; i < _cflRects.Count; i++)
+            //{
+            //    var rect = _cflRects[i];
+
             //    // The width and height of the gradient ellipse
             //    var widthRadius = gradientRadius * gradientRadius / RadiusLimit * 1.273f;
-            //    var heightRadius = widthRadius * _eflRect.Height / _eflRect.Width * 0.512f;
+            //    var heightRadius = widthRadius * rect.Height / rect.Width * 0.512f;
 
             //    using (GraphicsPath path = new())
             //    {
-            //        path.AddRectangle(_eflRect);
+            //        path.AddRectangle(rect);
             //        using PathGradientBrush brush = new(path)
             //        {
-            //            CenterPoint = new(_eflRect.X + _eflRect.Width / 2, _eflRect.Y + _eflRect.Height / 2),
+            //            CenterPoint = new(rect.X + rect.Width / 2, rect.Y + rect.Height / 2),
             //            CenterColor = Color.FromArgb(242, 252, 249, 176),
             //            SurroundColors = [Color.FromArgb(0, 255, 223, 186)],
             //            FocusScales = new(widthRadius, heightRadius),
             //        };
-            //        g.FillRectangle(brush, _eflRect);
+            //        g.FillRectangle(brush, rect);
             //    }
 
             //    // Fold lengthwise to disappear
             //    if (gradientRadius == RadiusLimit)
             //    {
             //        // Keep the center position of the rectangle
-            //        var progress = _eflAnimationCurrentFrame - (int)(_eflTotalAnimationFrames * gradientRadius);
-            //        var shrinkStep = _eflRectHeight / (int)(_eflTotalAnimationFrames * (1 - gradientRadius));
-            //        var newHeight = Math.Max(1, _eflRectHeight - (progress * shrinkStep));
+            //        var progress = _cflAnimationCurrentFrame - (int)(_cflTotalAnimationFrames * gradientRadius);
+            //        var shrinkStep = _cflRectHeights[i] / (int)(_cflTotalAnimationFrames * (1 - gradientRadius));
+            //        var newHeight = Math.Max(1, _cflRectHeights[i] - (progress * shrinkStep));
 
             //        // Update the rectangle
-            //        _eflRect.Y = _eflRect.Top + (_eflRect.Height / 2) - newHeight / 2;
-            //        _eflRect.Height = newHeight;
+            //        rect.Y = rect.Top + (rect.Height / 2) - newHeight / 2;
+            //        rect.Height = newHeight;
+            //        _cflRects[i] = rect;
             //    }
             //}
         }

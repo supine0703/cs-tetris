@@ -7,12 +7,12 @@ namespace Tetris
 {
     internal partial class Panel : UserControl
     {
-        private struct GridInfo(bool hasBlock, Block.E_BlockType belongsTo)
+        private struct CellInfo(bool wasOccupied, Block.E_BlockType belongsTo)
         {
-            public bool hasBlock = hasBlock;
+            public bool wasOccupied = wasOccupied;
             public Block.E_BlockType belongsTo = belongsTo;
 
-            public GridInfo() : this(false, Block.E_BlockType.Count) { }
+            public CellInfo() : this(false, Block.E_BlockType.Count) { }
         }
 
         private const int _MarginRowNum = 5;
@@ -20,10 +20,10 @@ namespace Tetris
         private const int _Rows = 20;
         private const int _Columns = 10;
 
-        private readonly List<GridInfo[]> _gridInfo = new(_Rows + _MarginRowNum);
+        private readonly List<CellInfo[]> _playfieldInfo = new(_Rows + _MarginRowNum);
         private readonly Queue<Block> _nextBlocks = new(_PrimaryBlockSize);
         private Block _currentBlock;
-        private Block? _backupBlock;
+        private Block? _holdBlock;
 
         private bool Pause { get; set; } = false;
 
@@ -37,10 +37,10 @@ namespace Tetris
             // Initialize the randomizer
             InitializeRandomizer();
 
-            // Initialize the grid infos
+            // Initialize the playfield info
             foreach (var _ in Enumerable.Range(0, _Rows + _MarginRowNum))
             {
-                _gridInfo.Add(new GridInfo[_Columns]);
+                _playfieldInfo.Add(new CellInfo[_Columns]);
             }
 
             // Initialize the blocks
@@ -94,11 +94,11 @@ namespace Tetris
             // Reset the randomizer
             InitializeRandomizer();
 
-            // Reset the grid infos
-            _gridInfo.Clear();
-            foreach (var _ in Enumerable.Range(0, _gridInfo.Capacity))
+            // Reset the playfield info
+            _playfieldInfo.Clear();
+            foreach (var _ in Enumerable.Range(0, _playfieldInfo.Capacity))
             {
-                _gridInfo.Add(new GridInfo[_Columns]);
+                _playfieldInfo.Add(new CellInfo[_Columns]);
             }
 
             // Reset the blocks
@@ -109,7 +109,7 @@ namespace Tetris
             }
 
             // Reset the block
-            _backupBlock = null;
+            _holdBlock = null;
             RandomBlock();
 
             // Start timer
@@ -127,7 +127,7 @@ namespace Tetris
         {
             base.OnPaint(e);
             DrawBackground(e.Graphics);
-            DrawGrid(e.Graphics);
+            DrawPlayfield(e.Graphics);
             DrawBlock(e.Graphics);
             DrawBeEatProgress(e.Graphics);
             DrawAllAnimationFrame(e.Graphics);
@@ -136,8 +136,11 @@ namespace Tetris
         // === Key System ===
         private readonly HashSet<Keys> _pressedKeys = [];
 
-        // === Key for falling ===
-        private readonly HashSet<Keys> _canFallKeys = [Keys.S, Keys.Down];
+        // === Key for hard dropping ===
+        private readonly HashSet<Keys> _canHardDropKeys = [Keys.W, Keys.Up];
+
+        // === Key for dropping ===
+        private readonly HashSet<Keys> _canSoftDropKeys = [Keys.S, Keys.Down];
 
         // === Key for horizontal moving ===
         private readonly HashSet<Keys> _canMoveLeftKeys = [Keys.A, Keys.Left];
@@ -149,11 +152,8 @@ namespace Tetris
         private readonly HashSet<Keys> _canRotateLeftKeys = [Keys.J, Keys.X];
         private readonly HashSet<Keys> _canRotateRightKeys = [Keys.K, Keys.C];
 
-        // === Key for dropping ===
-        private readonly HashSet<Keys> _canDropKeys = [Keys.W, Keys.Up];
-
-        // === Key for backup ===
-        private readonly HashSet<Keys> _canBackupKeys = [Keys.Space];
+        // === Key for hold ===
+        private readonly HashSet<Keys> _canHoldKeys = [Keys.Space];
 
         // Allow the arrow keys to be used in the game
         protected override bool ProcessDialogKey(Keys key)
@@ -220,22 +220,22 @@ namespace Tetris
                     _safeOfMoveFirts.Start();
                     changed = TryMoveBlockLeftOrRight(1);
                 }
-                // Drop
-                else if (_canDropKeys.Contains(e.KeyCode))
+                // Hard drop
+                else if (_canHardDropKeys.Contains(e.KeyCode))
                 {
-                    changed = DropBlock();
+                    changed = HardDropBlock();
                 }
-                // Backup
-                else if (_canBackupKeys.Contains(e.KeyCode))
+                // Hold
+                else if (_canHoldKeys.Contains(e.KeyCode))
                 {
-                    changed = TryBackupBlock();
+                    changed = TryHoldBlock();
                 }
                 else if (e.KeyCode == Keys.O)
                 {
                     Size boardSize = new(_Columns * _blockSize, _Rows * _blockSize / 6);
-                    var leftX = (ClientSize.Width - boardSize.Width - Padding.Left) * 0.5f;
-                    var leftY = (ClientSize.Height - boardSize.Height * 6 + Padding.Top) * 0.5f;
-                    StartEflAnimation([new(new((int)leftX, (int)leftY), boardSize), new(new((int)leftX, (int)leftY + 100), boardSize)]);
+                    var leftX = (ClientSize.Width - boardSize.Width) * 0.5f;
+                    var leftY = (ClientSize.Height - boardSize.Height * 6) * 0.5f;
+                    StartCflAnimation([new(new((int)leftX, (int)leftY), boardSize), new(new((int)leftX, (int)leftY + 400), boardSize)]);
                 }
                 // ...
 

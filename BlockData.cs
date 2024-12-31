@@ -2,20 +2,20 @@
 {
     internal partial class Block
     {
-        private struct BlockData(E_BlockType type, E_FacingDirection facing)
+        private struct BlockData(E_BlockType type, E_Orientation orientation)
         {
             public readonly E_BlockType BlockType => type;
-            public readonly E_FacingDirection FacingDirection => facing;
-            public readonly Position[] Placeholders => AllPlaceholders[(int)facing];
+            public readonly E_Orientation Orientation => orientation;
+            public readonly Position[] Placeholders => AllPlaceholders[(int)orientation];
 
             public void RightRotate()
             {
-                facing = (E_FacingDirection)(((int)facing + 1) % (int)E_FacingDirection.Count);
+                orientation = (E_Orientation)(((int)orientation + 1) % (int)E_Orientation.Count);
             }
 
             public void LeftRotate()
             {
-                facing = (E_FacingDirection)(((int)facing + (int)E_FacingDirection.Count - 1) % (int)E_FacingDirection.Count);
+                orientation = (E_Orientation)(((int)orientation + (int)E_Orientation.Count - 1) % (int)E_Orientation.Count);
             }
 
             public readonly Position RotateCenter => type switch
@@ -25,7 +25,7 @@
                 _ => throw new ArgumentOutOfRangeException(),
             };
 
-            public readonly Position[][] AllKickWallTable => type switch
+            public readonly Position[][] AllWallKickTable => type switch
             {
                 // UR, RR, DR, LR, UL, RL, DL, LL
                 E_BlockType.O => [

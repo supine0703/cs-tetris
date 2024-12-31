@@ -27,9 +27,9 @@ namespace Tetris
             g.FillRectangle(brush, ClientRectangle);
         }
 
-        private void DrawGrid(Graphics g)
+        private void DrawPlayfield(Graphics g)
         {
-            // Calculate the starting point to center the grid
+            // Calculate the starting point to center the cell
             var startX = (ClientSize.Width - _Columns * _blockSize) / 2;
             var startY = (ClientSize.Height - _Rows * _blockSize) / 2;
 
@@ -37,16 +37,16 @@ namespace Tetris
             using (Pen innerPen = new(Color.FromArgb(128, 128, 128, 128))) // Inner border pen with gray semi-transparency
             using (SolidBrush backBrush = new(BackgroundColor)) // Background brush with white color
             {
-                // Draw outer border (around the entire grid)
+                // Draw outer border (around the entire playfield)
                 g.DrawRectangle(outerPen, startX - 2, startY - 2, _Columns * _blockSize + 4, _Rows * _blockSize + 4);
 
-                // Fill the background of the grid
+                // Fill the background of the playfield
                 g.FillRectangle(backBrush, startX, startY, _Columns * _blockSize, _Rows * _blockSize);
 
                 // Move the starting point up by the margin row number
                 startY -= _MarginRowNum * _blockSize;
 
-                // Draw inner grid lines
+                // Draw inner cell lines
                 foreach (var i in Enumerable.Range(_MarginRowNum, _Rows))
                 {
                     foreach (var j in Enumerable.Range(0, _Columns))
@@ -57,9 +57,9 @@ namespace Tetris
                         // Draw inner border
                         g.DrawRectangle(innerPen, x, y, _blockSize, _blockSize);
                         // Fill the block if it has one
-                        if (_gridInfo[i][j].hasBlock)
+                        if (_playfieldInfo[i][j].wasOccupied)
                         {
-                            using SolidBrush brush = new(GetColor(_gridInfo[i][j].belongsTo));
+                            using SolidBrush brush = new(GetColor(_playfieldInfo[i][j].belongsTo));
                             g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                             g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
                         }
@@ -67,11 +67,11 @@ namespace Tetris
                 }
             }
 
-            // Draw the next block queue preview on the right side of the grid
+            // Draw the next block queue preview on the right side of the playfield
             DrawNextBlockPreview(g);
 
-            // Draw the backup block preview on the left side of the grid
-            DrawBackupBlock(g);
+            // Draw the hold block preview on the left side of the playfield
+            DrawHoldBlock(g);
         }
 
         private void DrawBlock(Graphics g)
@@ -87,13 +87,13 @@ namespace Tetris
             using (SolidBrush shadowBrush = new(Color.FromArgb(72, GetColor(_currentBlock.BlockType))))
             using (SolidBrush centerBrush = new(Color.FromArgb(72, ForegroundColor)))
             {
-                Block block = new(_currentBlock.BlockType, _currentBlock.FacingDirection, pos);
-                FallBottom(block);
+                Block block = new(_currentBlock.BlockType, _currentBlock.Orientation, pos);
+                DropBottom(block);
                 foreach (var placeholder in block.Placeholders)
                 {
                     var x = startX + (placeholder.x + block.Pos.x) * _blockSize;
                     var y = startY + (placeholder.y + block.Pos.y) * _blockSize;
-                    // Draw the shadow grid
+                    // Draw the shadow cells
                     g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
                     g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
                     // Draw the in the center of the shadow center
@@ -112,7 +112,7 @@ namespace Tetris
                     var x = startX + (placeholder.x + pos.x) * _blockSize;
                     var y = startY + (placeholder.y + pos.y) * _blockSize;
 
-                    // Draw the block grid
+                    // Draw the block cells
                     g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                     g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
                 }
@@ -167,7 +167,7 @@ namespace Tetris
                     var x = startX + placeholder.x * blockSize;
                     var y = startY + placeholder.y * blockSize;
 
-                    // Draw the block grid
+                    // Draw the block cells
                     g.FillRectangle(brush, x + xDiff, y + yDiff, blockSize, blockSize);
                     g.DrawRectangle(pen, x + xDiff, y + yDiff, blockSize, blockSize);
                 }
@@ -181,7 +181,7 @@ namespace Tetris
             }
         }
 
-        private void DrawBackupBlock(Graphics g)
+        private void DrawHoldBlock(Graphics g)
         {
             var startX = (ClientSize.Width - _Columns * _blockSize - Padding.Left) * 0.5f;
             var startY = (ClientSize.Height - _Rows * _blockSize + Padding.Top) * 0.5f + _blockSize * 0.4f;
@@ -189,20 +189,20 @@ namespace Tetris
             // Define the block size for the preview
             var blockSize = _blockSize * 0.672f;
 
-            // Draw the backup border
-            using (Pen backupPen = new(ForegroundColor, 2))
+            // Draw the hold border
+            using (Pen holdPen = new(ForegroundColor, 2))
             using (SolidBrush backBrush = new(Color.FromArgb(64, BackgroundColor)))
             {
                 var w = blockSize * 4.56f;
                 startX -= w;
-                g.DrawRectangle(backupPen, startX, startY, w, blockSize * 3.6f);
+                g.DrawRectangle(holdPen, startX, startY, w, blockSize * 3.6f);
                 g.FillRectangle(backBrush, startX, startY, w, blockSize * 3.6f);
             }
 
             startX += blockSize * 0.28f;
             startY -= blockSize * 0.28f;
 
-            var block = _backupBlock;
+            var block = _holdBlock;
 
             if (block is not null)
             {
@@ -228,7 +228,7 @@ namespace Tetris
                     var x = startX + placeholder.x * blockSize;
                     var y = startY + placeholder.y * blockSize;
 
-                    // Draw the block grid
+                    // Draw the block cells
                     g.FillRectangle(brush, x + xDiff, y + yDiff, blockSize, blockSize);
                     g.DrawRectangle(pen, x + xDiff, y + yDiff, blockSize, blockSize);
                 }
