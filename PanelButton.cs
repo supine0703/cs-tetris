@@ -12,7 +12,7 @@ namespace Tetris
                 Normal, Hover, Pressed,
             }
 
-            private const int _boardWidth = 3;
+            private const int _BoardWidth = 3;
 
             private E_State _state = E_State.Normal;
 
@@ -57,7 +57,7 @@ namespace Tetris
                 this.Region = new Region(path);
 
                 // Draw the background
-                using Pen pen = new(BoardColor, _boardWidth);
+                using Pen pen = new(BoardColor, _BoardWidth);
                 // Set the border to be drawn inside the control to reduce jagging
                 pen.Alignment = PenAlignment.Inset;
                 e.Graphics.DrawPath(pen, path);

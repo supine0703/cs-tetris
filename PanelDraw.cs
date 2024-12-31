@@ -5,7 +5,7 @@ namespace Tetris
     internal partial class Panel
     {
         private int _blockSize; // Size of each block
-        
+
         private bool UsingDark { get; set; } = true;
         private Color BackgroundColor => UsingDark ? Color.Black : Color.FromArgb(248, 247, 247);
         private Color ForegroundColor => UsingDark ? Color.White : Color.Black;
@@ -54,14 +54,17 @@ namespace Tetris
                         int x = startX + j * _blockSize;
                         int y = startY + i * _blockSize;
 
-                        // Draw inner border
-                        g.DrawRectangle(innerPen, x, y, _blockSize, _blockSize);
                         // Fill the block if it has one
-                        if (_playfieldInfo[i][j].wasOccupied)
+                        if (_playfieldInfo[i][j].state == E_CellState.Occupied)
                         {
                             using SolidBrush brush = new(GetColor(_playfieldInfo[i][j].belongsTo));
                             g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                             g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
+                        }
+                        // Draw inner border
+                        else
+                        {
+                            g.DrawRectangle(innerPen, x, y, _blockSize, _blockSize);
                         }
                     }
                 }
@@ -76,6 +79,11 @@ namespace Tetris
 
         private void DrawBlock(Graphics g)
         {
+            if (_currentBlock is null)
+            {
+                return;
+            }
+
             var startX = (ClientSize.Width - _Columns * _blockSize) / 2;
             var startY = (ClientSize.Height - _Rows * _blockSize) / 2;
 

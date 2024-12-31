@@ -5,10 +5,11 @@ namespace Tetris
     internal partial class Panel
     {
         private readonly Timer _timer = new();
-        private const int TimerInterval = 16;   // 62.5 FPS
+        private const int _TimerInterval = 16;  // 62.5 FPS (frame per second)
 
-        private float _dropGravity = 0.05f;               // cell per frame
-        private float _softDropGravityIncrease = 0.59f;   // cell per frame (0.64 * 62.5 = 40 cell per s)
+        private float _dropGravity = 0.024f;                // (1/40)G (cell per frame)
+        private float _softDropGravityIncrease = 0.616f;    // (2/3)G  (0.64 * 62.5 = 40 cell per s)
+        private const float _MaxGravity = 0.96f;            // 1G cell per frame (0.96 * 62.5 = 60 cell per s)
 
         private int _autoEatProgress = 0;           // in ms
         private int _autoEatTotalProgress = 600;    // 0.6s
@@ -16,19 +17,20 @@ namespace Tetris
 
         private void InitializeTimer()
         {
-            _timer.Interval = TimerInterval;
+            _timer.Interval = _TimerInterval;
             _timer.Tick += TimerTick;
             _timer.Start();
         }
 
         private void TimerTick(object? sender, EventArgs e)
         {
+            DelayToDoNextFrame();
             if (!Pause)
             {
                 // Auto be eaten
                 if (_autoEatEnabled)
                 {
-                    if (CanDrop() == 0)
+                    if (_currentBlock is not null && CanDrop() == 0)
                     {
                         _autoEatProgress += _timer.Interval;
                         if (_autoEatProgress >= _autoEatTotalProgress)
@@ -70,12 +72,17 @@ namespace Tetris
 
         private void DelayToDoNextFrame()
         {
+            if (Pause)
+            {
+                return;
+            }
+
             if (_delayToDo.Count == 0)
             {
                 return;
             }
 
-            foreach (var i in Enumerable.Range(_delayToDo.Count - 1, 0))
+            for (int i = _delayToDo.Count - 1; i >= 0; i--)
             {
                 var (frame, action) = _delayToDo[i];
                 if (--frame <= 0)

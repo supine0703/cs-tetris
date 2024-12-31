@@ -1,18 +1,25 @@
 ﻿using System.Diagnostics;
 using System.Drawing.Text;
 using System.Reflection;
+using System.Security.Policy;
 using Timer = System.Windows.Forms.Timer;
 
 namespace Tetris
 {
     internal partial class Panel : UserControl
     {
-        private struct CellInfo(bool wasOccupied, Block.E_BlockType belongsTo)
+        public enum E_CellState
         {
-            public bool wasOccupied = wasOccupied;
+            Empty = 0, Clearing, Occupied,
+        }
+
+        private struct CellInfo(E_CellState state, Block.E_BlockType belongsTo)
+        {
+            
+            public E_CellState state = state;
             public Block.E_BlockType belongsTo = belongsTo;
 
-            public CellInfo() : this(false, Block.E_BlockType.Count) { }
+            public CellInfo() : this(E_CellState.Empty, Block.E_BlockType.Count) { }
         }
 
         private const int _MarginRowNum = 5;
@@ -22,7 +29,7 @@ namespace Tetris
 
         private readonly List<CellInfo[]> _playfieldInfo = new(_Rows + _MarginRowNum);
         private readonly Queue<Block> _nextBlocks = new(_PrimaryBlockSize);
-        private Block _currentBlock;
+        private Block? _currentBlock;
         private Block? _holdBlock;
 
         private bool Pause { get; set; } = false;
@@ -34,21 +41,8 @@ namespace Tetris
             // Initialize the iconfont
             InitializeIconfont();
 
-            // Initialize the randomizer
-            InitializeRandomizer();
-
-            // Initialize the playfield info
-            foreach (var _ in Enumerable.Range(0, _Rows + _MarginRowNum))
-            {
-                _playfieldInfo.Add(new CellInfo[_Columns]);
-            }
-
-            // Initialize the blocks
-            _currentBlock = GetRandomBlock();
-            foreach (var _ in Enumerable.Range(0, _PrimaryBlockSize))
-            {
-                _nextBlocks.Enqueue(GetRandomBlock());
-            }
+            // Initialize the randomizer, playfield info, blocks, hold block
+            Restart();
 
             // Initialize the timer
             InitializeTimer();
@@ -108,7 +102,7 @@ namespace Tetris
                 _nextBlocks.Enqueue(GetRandomBlock());
             }
 
-            // Reset the block
+            // Reset the hold block
             _holdBlock = null;
             RandomBlock();
 

@@ -20,8 +20,8 @@ namespace Tetris
         }
 
         // === Clear Full Lines Animation ===
-        private const int _cflTotalAnimationFrames = 16;
-        private int _cflAnimationCurrentFrame = _cflTotalAnimationFrames;
+        private const int _CflTotalAnimationFrames = 21; // Line Clear Delay
+        private int _cflAnimationCurrentFrame = _CflTotalAnimationFrames;
         private List<Rectangle> _cflRects = [];
         private List<Rectangle> _cflBkRects = [];
         private List<int> _cflRectHeights = [];
@@ -43,10 +43,10 @@ namespace Tetris
 
         private void CflAnimationNextFrame()
         {
-            if (_cflAnimationCurrentFrame < _cflTotalAnimationFrames)
+            if (_cflAnimationCurrentFrame < _CflTotalAnimationFrames)
             {
                 _cflAnimationCurrentFrame++;
-                if (_cflAnimationCurrentFrame == _cflTotalAnimationFrames)
+                if (_cflAnimationCurrentFrame == _CflTotalAnimationFrames)
                 {
                     _onCflAnimationEnd?.Invoke();
                     _onCflAnimationEnd = null;
@@ -56,7 +56,7 @@ namespace Tetris
 
         private void DrawCflAnimationFrame(Graphics g)
         {
-            if (_cflAnimationCurrentFrame < 0 || _cflAnimationCurrentFrame >= _cflTotalAnimationFrames)
+            if (_cflAnimationCurrentFrame < 0 || _cflAnimationCurrentFrame >= _CflTotalAnimationFrames)
             {
                 return;
             }
@@ -81,7 +81,7 @@ namespace Tetris
                 Rectangle bottomLeft = new(bkRect.X - hDelta, rect.Bottom, hDelta, vDelta);
                 Rectangle bottomRight = new(bkRect.Right, rect.Bottom, hDelta, vDelta);
 
-                var alpha = 155 + (int)(100 * (1 - 1.0 * _cflAnimationCurrentFrame / _cflTotalAnimationFrames));
+                var alpha = 155 + (int)(100 * (1 - 1.0 * _cflAnimationCurrentFrame / _CflTotalAnimationFrames));
 
                 // Draw the center rectangle
                 using (GraphicsPath path = new())
@@ -199,7 +199,7 @@ namespace Tetris
                 }
 #endif
                 // The progress of the animation is first fast and then slow
-                var progress = Math.Sqrt(1.0 * _cflAnimationCurrentFrame / (_cflTotalAnimationFrames - 1));
+                var progress = Math.Sqrt(1.0 * _cflAnimationCurrentFrame / (_CflTotalAnimationFrames - 1));
 
                 // It compresses vertically and grows horizontall
                 var newHeight = Math.Max(1, bkRect.Height - (int)(progress * bkRect.Height));
