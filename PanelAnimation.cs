@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing.Drawing2D;
+﻿using System.Drawing.Drawing2D;
 
 namespace Tetris
 {
@@ -21,13 +20,15 @@ namespace Tetris
         }
 
         // === Clear Full Lines Animation ===
-        private const int _cflTotalAnimationFrames = 160;
+        private const int _cflTotalAnimationFrames = 16;
         private int _cflAnimationCurrentFrame = _cflTotalAnimationFrames;
         private List<Rectangle> _cflRects = [];
         private List<Rectangle> _cflBkRects = [];
         private List<int> _cflRectHeights = [];
         private Action? _onCflAnimationEnd = null;
         private Color CflCenterColor => UsingDark ? Color.FromArgb(252, 249, 176) : Color.FromArgb(171, 32, 164);
+        private const bool CLF_A_DRAW_CORNORS = false; // It seems unnecessary
+
 
         private void StartCflAnimation(List<Rectangle> rectangles, Action? onAnimationEnds = null, int frame = 0)
         {
@@ -62,90 +63,143 @@ namespace Tetris
 
             foreach (var i in Enumerable.Range(0, _cflRects.Count))
             {
-                // The progress of the animation is first fast and then slow
-                var progress = (
-                    Math.Sqrt(_cflAnimationCurrentFrame) *
-                    Math.Sqrt(_cflTotalAnimationFrames - 1) /
-                    (_cflTotalAnimationFrames - 1)
-                );
 
-
-                var alpha = 155 + (int)(100 * (1 - progress));
                 var rect = _cflRects[i];
                 var bkRect = _cflBkRects[i];
 
+                // Create whole rectangle
                 var hDelta = (int)((float)rect.Width / bkRect.Width * _blockSize);
                 var vDelta = (int)((float)rect.Height / bkRect.Height * _blockSize) * 2;
+                Rectangle tempRect = new(
+                    rect.X - hDelta, rect.Y - vDelta, rect.Width + hDelta * 2, rect.Height + vDelta * 2
+                );
 
+                // Create 4 rectangles for the corners
+                hDelta = (tempRect.Width - bkRect.Width) / 2;
+                Rectangle topLeft = new(bkRect.X - hDelta, rect.Y - vDelta, hDelta, vDelta);
+                Rectangle topRight = new(bkRect.Right, rect.Y - vDelta, hDelta, vDelta);
+                Rectangle bottomLeft = new(bkRect.X - hDelta, rect.Bottom, hDelta, vDelta);
+                Rectangle bottomRight = new(bkRect.Right, rect.Bottom, hDelta, vDelta);
+
+                var alpha = 155 + (int)(100 * (1 - 1.0 * _cflAnimationCurrentFrame / _cflTotalAnimationFrames));
+
+                // Draw the center rectangle
                 using (GraphicsPath path = new())
                 {
-                    // Define tempRect that uses the halo effect
-                    var tempRect = rect;
-                    
-                    tempRect.Width += hDelta * 2;
-                    tempRect.X -= hDelta;
-
-                    tempRect.Height += vDelta * 2;
-                    tempRect.Y -= vDelta;
-
-                    // Draw horizontal
-                    path.AddEllipse(tempRect);
-                    using (PathGradientBrush brush = new(path)
+                    // Create the brush
+                    path.AddRectangle(tempRect);
+                    using PathGradientBrush brush = new(path)
                     {
                         CenterPoint = new(tempRect.X + tempRect.Width / 2, tempRect.Y + tempRect.Height / 2),
                         CenterColor = Color.FromArgb(alpha, CflCenterColor),
                         SurroundColors = [Color.Transparent],
-                        FocusScales = new((float)bkRect.Width / tempRect.Width / 2, 0),
-                    }) { g.FillRectangle(brush, tempRect); }
+                        FocusScales = new((float)bkRect.Width / tempRect.Width, (float)rect.Height / tempRect.Height),
+                    };
 
-                    
+                    path.Reset();
+                    path.AddRectangle(tempRect);
+                    // Subtract the 4 corners
+                    path.SetMarkers();
+                    path.AddRectangle(topLeft);
+                    path.AddRectangle(topRight);
+                    path.AddRectangle(bottomLeft);
+                    path.AddRectangle(bottomRight);
+                    path.SetMarkers();
 
-                    // Draw vertical
-                    //Rectangle vRect = new(bkRect.X, tempRect.Y + 1, bkRect.Width, Math.Max(1, vDelta));
-
-                    //using (LinearGradientBrush brush = new(vRect, Color.Transparent, Color.FromArgb(alpha, CflCenterColor), 90f))
-                    //{
-                    //    vRect.Y++;
-                    //    //g.FillRectangle(brush, vRect);
-                    //}
-
-                    //// Draw top
-                    //path.Reset();
-                    //path.AddRectangle(vRect);
-                    //using (PathGradientBrush brush = new(path)
-                    //{
-                    //    CenterPoint = new(vRect.X + vRect.Width / 2, vRect.Bottom),
-                    //    CenterColor = Color.FromArgb(alpha, CflCenterColor),
-                    //    SurroundColors = [Color.Transparent],
-                    //    FocusScales = new(1, 0),
-                    //}) { g.FillRectangle(brush, tempRect); }
-                    
-                    //// Draw bottom
-                    //vRect.Y = tempRect.Bottom - vDelta;
-                    //path.Reset();
-                    //path.AddRectangle(vRect);
-                    //using (PathGradientBrush brush = new(path)
-                    //{
-                    //    CenterPoint = new(vRect.X + vRect.Width / 2, vRect.Top),
-                    //    CenterColor = Color.FromArgb(alpha, CflCenterColor),
-                    //    SurroundColors = [Color.Transparent],
-                    //    FocusScales = new(1, 0),
-                    //}) { g.FillRectangle(brush, tempRect); }
-
-                    // Draw corners
-                    //Rectangle cornerRect = new(tempRect.Location, new(hDelta, vDelta));
-
-                    //// Draw top left
-                    //path.Reset();
-                    //path.AddRectangle(cornerRect);
-                    //using (PathGradientBrush brush = new(path)
-                    //{
-                    //    CenterPoint = new(cornerRect.Right, cornerRect.Bottom),
-                    //    CenterColor = Color.FromArgb(alpha, CflCenterColor),
-                    //    SurroundColors = [Color.Transparent],
-                    //    FocusScales = new(0, 0),
-                    //}) { g.FillRectangle(brush, tempRect); }
+                    // Draw the center rectangle
+                    g.FillPath(brush, path);
                 }
+
+#if CLF_A_DRAW_CORNORS == true
+                if (vDelta != 0 )
+                {
+                    using (GraphicsPath path = new())
+                    {
+                        // Create the brush
+                        path.AddEllipse(new(
+                            topLeft.Right - topLeft.Width,
+                            topLeft.Bottom - topLeft.Height,
+                            topLeft.Width * 2,
+                            topLeft.Height * 2
+                        ));
+                         using PathGradientBrush brush = new(path)
+                        {
+                            CenterPoint = new(topLeft.Right, topLeft.Bottom),
+                            CenterColor = Color.FromArgb(alpha, CflCenterColor),
+                            SurroundColors = [Color.Transparent],
+                            FocusScales = new(0, 0),
+                        };
+                        path.Reset();
+                        path.AddRectangle(topLeft);
+                        g.FillPath(brush, path);
+                    }
+
+                    using (GraphicsPath path = new())
+                    {
+                        // Create the brush
+                        path.AddEllipse(new(
+                            topRight.Left - topRight.Width,
+                            topRight.Bottom - topRight.Height,
+                            topRight.Width * 2,
+                            topRight.Height * 2
+                        ));
+                        using PathGradientBrush brush = new(path)
+                        {
+                            CenterPoint = new(topRight.Left, topRight.Bottom),
+                            CenterColor = Color.FromArgb(alpha, CflCenterColor),
+                            SurroundColors = [Color.Transparent],
+                            FocusScales = new(0, 0),
+                        };
+                        path.Reset();
+                        path.AddRectangle(topRight);
+                        g.FillPath(brush, path);
+                    }
+
+                    using (GraphicsPath path = new())
+                    {
+                        // Create the brush
+                        path.AddEllipse(new(
+                            bottomLeft.Right - bottomLeft.Width,
+                            bottomLeft.Top - bottomLeft.Height,
+                            bottomLeft.Width * 2,
+                            bottomLeft.Height * 2
+                        ));
+                        using PathGradientBrush brush = new(path)
+                        {
+                            CenterPoint = new(bottomLeft.Right, bottomLeft.Top),
+                            CenterColor = Color.FromArgb(alpha, CflCenterColor),
+                            SurroundColors = [Color.Transparent],
+                            FocusScales = new(0, 0),
+                        };
+                        path.Reset();
+                        path.AddRectangle(bottomLeft);
+                        g.FillPath(brush, path);
+                    }
+
+                    using (GraphicsPath path = new())
+                    {
+                        // Create the brush
+                        path.AddEllipse(new(
+                            bottomRight.Left - bottomRight.Width,
+                            bottomRight.Top - bottomRight.Height,
+                            bottomRight.Width * 2,
+                            bottomRight.Height * 2
+                        ));
+                        using PathGradientBrush brush = new(path)
+                        {
+                            CenterPoint = new(bottomRight.Left, bottomRight.Top),
+                            CenterColor = Color.FromArgb(alpha, CflCenterColor),
+                            SurroundColors = [Color.Transparent],
+                            FocusScales = new(0, 0),
+                        };
+                        path.Reset();
+                        path.AddRectangle(bottomRight);
+                        g.FillPath(brush, path);
+                    }
+                }
+#endif
+                // The progress of the animation is first fast and then slow
+                var progress = Math.Sqrt(1.0 * _cflAnimationCurrentFrame / (_cflTotalAnimationFrames - 1));
 
                 // It compresses vertically and grows horizontall
                 var newHeight = Math.Max(1, bkRect.Height - (int)(progress * bkRect.Height));
