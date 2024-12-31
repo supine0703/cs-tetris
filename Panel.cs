@@ -24,7 +24,7 @@ namespace Tetris
         private readonly Queue<Block> _nextBlocks = new(_PrimaryBlockSize);
         private Block _currentBlock;
         private Block? _backupBlock;
-        
+
         private bool Pause { get; set; } = false;
 
         private PrivateFontCollection _pfc = new();
@@ -70,7 +70,7 @@ namespace Tetris
             var resourceNames = assembly.GetManifestResourceNames();
 
             // Find the iconfont file in the resources
-            var iconfontName = resourceNames.FirstOrDefault(name => name.Contains("iconfont")) 
+            var iconfontName = resourceNames.FirstOrDefault(name => name.Contains("iconfont"))
                 ?? throw new Exception("Iconfont file not found.");
 
             using var fontStream = assembly.GetManifestResourceStream(iconfontName)
@@ -130,6 +130,7 @@ namespace Tetris
             DrawGrid(e.Graphics);
             DrawBlock(e.Graphics);
             DrawBeEatProgress(e.Graphics);
+            DrawAllAnimationFrame(e.Graphics);
         }
 
         // === Key System ===
@@ -181,15 +182,26 @@ namespace Tetris
                 return;
             }
 
-            if (Pause)
+            if (!_pressedKeys.Contains(e.KeyCode))
             {
-            }
-            else if (!_pressedKeys.Contains(e.KeyCode))
-            {
-                Debug.WriteLine(e.KeyCode);
                 var changed = false;
+                if (e.KeyCode == Keys.P)
+                {
+                    PauseButtonClick();
+                }
+                else if (e.KeyCode == Keys.R)
+                {
+                    RestartButtonClick();
+                }
+                else if (e.KeyCode == Keys.T)
+                {
+                    ThemeButtonClick();
+                }
+                else if (Pause)
+                {
+                }
                 // Rotate
-                if (_canRotateLeftKeys.Contains(e.KeyCode))
+                else if (_canRotateLeftKeys.Contains(e.KeyCode))
                 {
                     changed = TryLeftRotate();
                 }
@@ -218,6 +230,14 @@ namespace Tetris
                 {
                     changed = TryBackupBlock();
                 }
+                else if (e.KeyCode == Keys.O)
+                {
+                    Size boardSize = new(_Columns * _blockSize, _Rows * _blockSize / 6);
+                    var leftX = (ClientSize.Width - boardSize.Width - Padding.Left) * 0.5f;
+                    var leftY = (ClientSize.Height - boardSize.Height * 6 + Padding.Top) * 0.5f;
+                    StartEflAnimation([new(new((int)leftX, (int)leftY), boardSize), new(new((int)leftX, (int)leftY + 100), boardSize)]);
+                }
+                // ...
 
                 // Reset drop progress
                 if (changed)

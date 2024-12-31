@@ -63,6 +63,7 @@ namespace Tetris
                     }
                 }
             }
+            AllAnimationNextFrame();
             this.Invalidate(); // Redraw the panel
         }
 

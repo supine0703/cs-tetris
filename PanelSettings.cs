@@ -10,6 +10,14 @@
 
         private void InitializeSettings()
         {
+            // Initialize the message label
+            _messageLabel.Hide();
+            _messageLabel.TextAlign = ContentAlignment.MiddleCenter;
+            _messageLabel.TabStop = false;
+            _messageLabel.BackColor = Color.Transparent;
+            _messageLabel.ForeColor = UsingDark ? Color.White : Color.Black;
+            this.Controls.Add(_messageLabel);
+
             // Initialize the theme button
             _themeButton.Text = UsingDark ? "Dark" : "Light";
             _themeButton.Click += (sender, e) => ThemeButtonClick();
@@ -26,13 +34,6 @@
             _restartButton.UseCompatibleTextRendering = true;
             _restartButton.Click += (sender, e) => RestartButtonClick();
             this.Controls.Add(_restartButton);
-
-            // Initialize the message label
-            _messageLabel.Hide();
-            _messageLabel.TextAlign = ContentAlignment.MiddleCenter;
-            _messageLabel.BackColor = Color.Transparent;
-            _messageLabel.ForeColor = UsingDark ? Color.White : Color.Black;
-            this.Controls.Add(_messageLabel);
         }
 
         private void ResizeSettings()

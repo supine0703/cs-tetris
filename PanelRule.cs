@@ -1,4 +1,7 @@
-﻿namespace Tetris
+﻿using System.Diagnostics;
+using System.Net.Quic;
+
+namespace Tetris
 {
     internal partial class Panel
     {
@@ -94,12 +97,48 @@
                     fullLines.Add(y);
                 }
             }
-            fullLines = [.. fullLines.OrderByDescending(x => -x)];
-            foreach (var line in fullLines)
+
+            if (fullLines.Count == 0)
             {
-                _gridInfo.RemoveAt(line);
-                _gridInfo.Insert(0, new GridInfo[_Columns]);
+                return;
             }
+
+            var width = _Columns * _blockSize + Padding.Horizontal;
+            var startX = (ClientSize.Width - width) / 2;
+            var startY = (ClientSize.Height - (_Rows + (_PrimaryBlockSize - 1) * 2) * _blockSize) / 2;
+
+            List<int> lines = [.. fullLines.OrderBy(x => x)];
+
+            List<Rectangle> rectangles = [];
+
+            var currentLine = lines[0];
+            Rectangle currentRect = new(startX, startY + currentLine * _blockSize, width, 0);
+            foreach (var line in lines)
+            {
+                if (currentLine == line)
+                {
+                    currentRect.Height += _blockSize;
+                    currentLine++;
+                }
+                else
+                {
+                    rectangles.Add(currentRect);
+                    currentRect = new(startX, startY + line * _blockSize, width, _blockSize);
+                    currentLine = line + 1;
+                }
+            }
+            rectangles.Add(currentRect);
+
+            Debug.WriteLine($"{rectangles.Count}");
+
+            StartEflAnimation(rectangles, () =>
+            {
+                foreach (var line in lines)
+                {
+                    _gridInfo.RemoveAt(line);
+                    _gridInfo.Insert(0, new GridInfo[_Columns]);
+                }
+            });
         }
 
         private bool TryBackupBlock()

@@ -5,8 +5,7 @@ namespace Tetris
     internal partial class Panel
     {
         private int _blockSize; // Size of each block
-        private Size PanelSize => new(ClientSize.Width - Padding.Horizontal, ClientSize.Height - Padding.Vertical);
-
+        
         private bool UsingDark { get; set; } = true;
         private Color BackgroundColor => UsingDark ? Color.Black : Color.FromArgb(248, 247, 247);
         private Color ForegroundColor => UsingDark ? Color.White : Color.Black;
@@ -31,8 +30,8 @@ namespace Tetris
         private void DrawGrid(Graphics g)
         {
             // Calculate the starting point to center the grid
-            var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
-            var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
+            var startX = (ClientSize.Width - _Columns * _blockSize) / 2;
+            var startY = (ClientSize.Height - _Rows * _blockSize) / 2;
 
             using (Pen outerPen = new(ForegroundColor, 4)) // Outer border pen with .. color
             using (Pen innerPen = new(Color.FromArgb(128, 128, 128, 128))) // Inner border pen with gray semi-transparency
@@ -77,8 +76,8 @@ namespace Tetris
 
         private void DrawBlock(Graphics g)
         {
-            var startX = (PanelSize.Width - _Columns * _blockSize) / 2 + Padding.Left;
-            var startY = (PanelSize.Height - _Rows * _blockSize) / 2 + Padding.Top;
+            var startX = (ClientSize.Width - _Columns * _blockSize) / 2;
+            var startY = (ClientSize.Height - _Rows * _blockSize) / 2;
 
             var pos = _currentBlock.Pos;
             var radius = _blockSize * 0.125f;
