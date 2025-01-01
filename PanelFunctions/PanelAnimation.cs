@@ -21,6 +21,15 @@ namespace Tetris
             DrawHdAnimationFrame(g);
         }
 
+        private void ResetAllAnimation()
+        {
+            // Reset the Clear Full Lines Animation
+            _onCflAnimationEnd = null;
+            _cflAnimationCurrentFrame = _CflTotalAnimationFrames;
+            // Reset the Hard Drop Animation
+            _hdAnimations.Clear();
+        }
+
         // === Clear Full Lines Animation ===
         private const int _CflTotalAnimationFrames = 21; // Line Clear Delay
         private int _cflAnimationCurrentFrame = _CflTotalAnimationFrames;

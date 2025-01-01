@@ -7,6 +7,7 @@ namespace Tetris
     {
         private readonly BagRandomizer<Block.E_Type> _randomizer = new();
         private const int _EntryDelayFrames = 10;
+        private bool GameOver { get; set; } = false;
 
         private void InitializeRandomizer()
         {
@@ -25,10 +26,10 @@ namespace Tetris
 
         private void OnTopOut()
         {
-            this.Invalidate();
-            _timer.Stop();
             _sounds["GameOver"]?.Play();
-            MessageBox.Show("Game Over!");
+            GameOver = true;
+            _currentBlock = null;
+            PauseButtonClick();
         }
 
         private bool CheckTopOut()
@@ -69,8 +70,6 @@ namespace Tetris
             if (CheckTopOut())
             {
                 OnTopOut();
-                Restart();
-                return true;
             }
 
             return true;

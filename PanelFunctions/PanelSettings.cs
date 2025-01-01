@@ -100,8 +100,8 @@
             _pauseButton.Text = Pause ? "\ue615" : "\ue616";
             if (Pause)
             {
-                _massageLabelRatio = 2;
-                _messageLabel.Text = "Pause";
+                _massageLabelRatio = GameOver ? 1.2f : 2f;
+                _messageLabel.Text = GameOver ? "Game Over" : "Pause";
                 _messageLabel.Show();
                 RefushMessageFontSize();
             }

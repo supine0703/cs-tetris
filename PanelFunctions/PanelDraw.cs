@@ -7,6 +7,7 @@ namespace Tetris
         private int _blockSize; // Size of each block
 
         private bool UsingDark { get; set; } = true;
+        private Color PauseBackground => UsingDark ? Color.FromArgb(128, Color.Black) : Color.FromArgb(128, 222, 222, 222);
         private Color BackgroundColor => UsingDark ? Color.Black : Color.FromArgb(248, 247, 247);
         private Color ForegroundColor => UsingDark ? Color.White : Color.Black;
         // Define the gradient colors
@@ -47,22 +48,22 @@ namespace Tetris
                 startY -= _MarginRowNum * _blockSize;
 
                 // Draw inner cell lines
-                foreach (var i in Enumerable.Range(_MarginRowNum, _Rows))
+                foreach (var row in Enumerable.Range(0, _Rows + _MarginRowNum))
                 {
-                    foreach (var j in Enumerable.Range(0, _Columns))
+                    foreach (var col in Enumerable.Range(0, _Columns))
                     {
-                        int x = startX + j * _blockSize;
-                        int y = startY + i * _blockSize;
+                        int x = startX + col * _blockSize;
+                        int y = startY + row * _blockSize;
 
                         // Fill the block if it has one
-                        if (_playfieldInfo[i][j].State == E_CellState.Occupied)
+                        if (_playfieldInfo[row][col].State == E_CellState.Occupied)
                         {
-                            using SolidBrush brush = new(GetColor(_playfieldInfo[i][j].BelongsTo));
+                            using SolidBrush brush = new(GetColor(_playfieldInfo[row][col].BelongsTo));
                             g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                             g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
                         }
                         // Draw inner border
-                        else
+                        else if (row >= _MarginRowNum)
                         {
                             g.DrawRectangle(innerPen, x, y, _blockSize, _blockSize);
                         }
@@ -267,6 +268,15 @@ namespace Tetris
             float sweepAngle = 360 * AutoEatProgressPercent();
             using var pen = new Pen(UsingDark ? Color.Peru : Color.Blue, thickness);
             g.DrawArc(pen, startX, startY, radius * 2, radius * 2, -90, sweepAngle);
+        }
+
+        private void DrawPauseBackground(Graphics g)
+        {
+            if (Pause)
+            {
+                using SolidBrush brush = new(PauseBackground);
+                g.FillRectangle(brush, ClientRectangle);
+            }
         }
 
         private Color GetColor(Block.E_Type type) => UsingDark ? (type switch

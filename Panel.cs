@@ -106,9 +106,12 @@ namespace Tetris
             // Reset the hold block
             _holdBlock = null;
             RandomBlock();
+            GameOver = false;
 
-            // Start timer
-            _timer.Start();
+            // Update pause message and animation
+            PauseButtonClick();
+            PauseButtonClick();
+            ResetAllAnimation();
         }
 
         private void PanelLoad(object? sender, EventArgs e)
@@ -134,6 +137,7 @@ namespace Tetris
             DrawBlock(e.Graphics);
             DrawBeEatProgress(e.Graphics);
             DrawAllAnimationFrame(e.Graphics);
+            DrawPauseBackground(e.Graphics);
         }
 
         protected override void Dispose(bool disposing)
