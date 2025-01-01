@@ -9,6 +9,8 @@ namespace Tetris
         private readonly CustonButton _restartButton = new();
         private readonly Label _messageLabel = new();
         private readonly Label _watchLabel = new();
+        private readonly Label _lineClearLabel = new();
+        private readonly Label _totalScoreLabel = new();
         private float MassageLabelRatio { get; set; } = 1.0f;
 
         private readonly Label _autoEatLabel = new();
@@ -25,6 +27,12 @@ namespace Tetris
             // Initialize the watch label
             UniformSetLabel(_watchLabel);
             this.Controls.Add(_watchLabel);
+
+            // Initialize the line clear label and total score label
+            UniformSetLabel(_lineClearLabel);
+            this.Controls.Add(_lineClearLabel);
+            UniformSetLabel(_totalScoreLabel);
+            this.Controls.Add(_totalScoreLabel);
 
             // Initialize the message label
             _messageLabel.Hide();
@@ -163,6 +171,17 @@ namespace Tetris
                 _autoDropButton.Font = new(_autoDropButton.Font.FontFamily, blockSize * 0.42f + 1, _autoDropButton.Font.Style);
             }
 
+            // Resize the line clear label and total score labe (left)
+            {
+                _lineClearLabel.Size = new((int)width, (int)blockSize * 2);
+                _lineClearLabel.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 19.3f));
+                _lineClearLabel.Font = new(_lineClearLabel.Font.FontFamily, blockSize * 0.228f + 1, _lineClearLabel.Font.Style);
+
+                _totalScoreLabel.Size = new((int)width, (int)blockSize * 2);
+                _totalScoreLabel.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 21.3f));
+                _totalScoreLabel.Font = new(_totalScoreLabel.Font.FontFamily, blockSize * 0.228f + 1, _totalScoreLabel.Font.Style);
+            }
+
             // Resize the watch label (left)
             {
                 _watchLabel.Size = new((int)width, (int)blockSize * 2);
@@ -213,6 +232,11 @@ namespace Tetris
             {
                 _watchLabel.Text = elapsed.ToString("hh\\:mm\\'ss\\'");
             }
+        }
+
+        private void RefushLineClearLabel()
+        {
+            _lineClearLabel.Text = $"Line Clear: {_lineClearCount}";
         }
 
         private void RefushMessageFontSize()

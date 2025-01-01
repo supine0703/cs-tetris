@@ -6,6 +6,9 @@
         private const int _EntryDelayFrames = 10;
         private bool GameOver { get; set; } = false;
 
+        private int _lineClearCount = 0;
+        private int _totalScore = 0;
+
         private void InitializeRandomizer()
         {
             // Initialize the randomizer
@@ -61,12 +64,12 @@
             if (!ClearFullLines())
             {
                 RandomBlock();
-            }
 
-            // Check if the game is over
-            if (CheckTopOut())
-            {
-                OnTopOut();
+                // Check if the game is over
+                if (CheckTopOut())
+                {
+                    OnTopOut();
+                }
             }
 
             return true;
@@ -156,6 +159,11 @@
                     _playfieldInfo.RemoveAt(line);
                     _playfieldInfo.Insert(0, new CellInfo[_Columns]);
                 });
+                // Check if the game is over
+                if (CheckTopOut())
+                {
+                    OnTopOut();
+                }
             }));
             return true;
         }
