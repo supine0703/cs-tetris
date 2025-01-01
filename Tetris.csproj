@@ -32,29 +32,37 @@
     <Compile Update="BlockData.cs">
       <DependentUpon>Block.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelAnimation.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelAnimation.cs">
+      <Link>PanelAnimation.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelButton.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelButton.cs">
+      <Link>PanelButton.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelDraw.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelDraw.cs">
+      <Link>PanelDraw.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelKeySystem.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelKeySystem.cs">
+      <Link>PanelKeySystem.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelRule.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelRule.cs">
+      <Link>PanelRule.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelSettings.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelSettings.cs">
+      <Link>PanelSettings.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelSound.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelSound.cs">
+      <Link>PanelSound.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="Panel\PanelTimer.cs">
-      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    <Compile Update="PanelFunctions\PanelTimer.cs">
+      <Link>PanelTimer.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

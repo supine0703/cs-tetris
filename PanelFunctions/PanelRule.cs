@@ -49,6 +49,8 @@ namespace Tetris
                 return false;
             }
 
+            _sounds["Lock"]?.Play();
+
             foreach (var placeholder in _currentBlock.Placeholders)
             {
                 var y = (int)Math.Ceiling(placeholder.Y + _currentBlock.Pos.Y + _MarginRowNum);
@@ -80,8 +82,7 @@ namespace Tetris
             {
                 return false;
             }
-            _sounds["HardDrop"]?.Play();
-
+            
             // Get the top placeholders of the current block
             List<Position> placeholders = [.. _currentBlock.Placeholders
                 .ToList().GroupBy(pos => pos.X).Select(g => g.OrderBy(pos => pos.Y).First())
@@ -285,6 +286,7 @@ namespace Tetris
 
                 if (!CheckCollision(block))
                 {
+                    _sounds["Fall"]?.Play();
                     _currentBlock = block;
                     return true;
                 }

@@ -37,10 +37,6 @@
             ClientSize = new Size(768, 1024);
             MinimumSize = new Size(500, 800);
             Name = "MainForm";
-            byte[] Author = [
-                0xe6, 0x9d, 0x8e, 0xe5, 0xae, 0x97, 0xe9, 0x9c, 0x96
-            ];
-            Text = $"Tetris Author: {System.Text.Encoding.UTF8.GetString(Author)} Email: supine0703@outlook.com"; 
             Load += MainForm_Load;
             ResumeLayout(false);
         }

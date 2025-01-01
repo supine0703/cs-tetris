@@ -41,7 +41,7 @@ namespace Tetris
             { "Rotate",     "tap-1" },
             { "Move",       "tap-1" },
             { "Hold",       "pop-1" },
-            { "HardDrop",   "pop-2" },
+            { "Lock",       "pop-2" },
             { "Fall",       "fall_to_the_ground-1" },
             { "ClearLine",  "linging-1" },
             { "GameOver",   "game_over" },
