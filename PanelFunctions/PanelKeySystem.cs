@@ -57,7 +57,7 @@ namespace Tetris
             if (!_pressedKeys.Contains(e.KeyCode))
             {
                 var changed = false;
-                if (e.KeyCode == Keys.P)
+                if (e.KeyCode == Keys.P || e.KeyCode == Keys.Escape)
                 {
                     PauseButtonClick();
                 }
@@ -108,10 +108,7 @@ namespace Tetris
                 }
                 else if (e.KeyCode == Keys.O)
                 {
-                    Size boardSize = new(_Columns * _blockSize, _Rows * _blockSize / 6);
-                    var leftX = (ClientSize.Width - boardSize.Width) * 0.5f;
-                    var leftY = (ClientSize.Height - boardSize.Height * 8) * 0.5f;
-                    StartHdAnimation([new Rectangle(new((int)leftX, (int)leftY), boardSize)], Block.E_Type.T);
+                    // Test ...
                 }
                 // ...
 

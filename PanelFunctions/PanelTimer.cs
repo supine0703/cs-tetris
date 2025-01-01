@@ -1,19 +1,24 @@
-﻿using Timer = System.Windows.Forms.Timer;
+﻿using System.Diagnostics;
+using Timer = System.Windows.Forms.Timer;
 
 namespace Tetris
 {
     internal partial class Panel
     {
+        // The timer is used to refresh each frame
         private readonly Timer _timer = new();
         private const int _TimerInterval = 16;  // 62.5 FPS (frame per second)
 
-        private float _dropGravity = 0.024f;                // (1/40)G (cell per frame) (here 'G' refer to 60 frames per second)
-        private float _softDropGravityIncrease = 0.616f;    // (2/3)G  (0.64 * 62.5 = 40 cell per s)
-        private const float _MaxGravity = 0.96f;            // 1G      (0.96 * 62.5 = 60 cell per s)
+        // The gravity for dropping
+        private float _dropGravity = 0.024f;                // 0.025G (cell per frame) (here 'G' refer to 60 frames per second)
+        private float _softDropGravityIncrease = 0.6672f;   // 0.72G  (0.6912 * 62.5 = 40 cell per s)
+        private const float _MaxGravity = 0.96f;            // 1G     (0.96 * 62.5 = 60 cell per s)
+        private bool AutoDropEnabled { get; set; } = true;
 
+        // The auto eat block progress
         private int _autoEatProgress = 0;           // in ms
-        private int _autoEatTotalProgress = 600;    // 0.6s
-        private bool _autoEatEnabled = true;
+        private int _autoEatTotalProgress = 750;    // 0.75s
+        private bool AutoEatEnabled { get; set; } = true;
 
         private void InitializeTimer()
         {
@@ -24,29 +29,27 @@ namespace Tetris
 
         private void TimerTick(object? sender, EventArgs e)
         {
+            RefushWatchLabel();
             DelayToDoNextFrame();
             if (!Pause)
             {
                 // Auto be eaten
-                if (_autoEatEnabled)
+                if (AutoEatEnabled && _currentBlock is not null && CanDrop() == 0)
                 {
-                    if (_currentBlock is not null && CanDrop() == 0)
+                    _autoEatProgress += _timer.Interval;
+                    if (_autoEatProgress >= _autoEatTotalProgress)
                     {
-                        _autoEatProgress += _timer.Interval;
-                        if (_autoEatProgress >= _autoEatTotalProgress)
-                        {
-                            EatBlock();
-                            ResetAutoEatProceed();
-                        }
-                    }
-                    else
-                    {
+                        EatBlock();
                         ResetAutoEatProceed();
                     }
                 }
+                else
+                {
+                    ResetAutoEatProceed();
+                }
 
                 // Auto dropping
-                if (_dropGravity > 0 && CanDrop() != 0)
+                if (_dropGravity >= 0 && CanDrop() != 0)
                 {
                     // Check if press the key for dropping
                     var pressed = _canSoftDropKeys.Any(key => _pressedKeys.Contains(key));
@@ -56,7 +59,11 @@ namespace Tetris
                         _sounds["Move"]?.Play();
                     }
 
-                    if (!TryMoveBlockUpOrDown(_dropGravity + (pressed ? _softDropGravityIncrease : 0)))
+                    var down = (pressed ? 
+                        (_dropGravity + _softDropGravityIncrease) :
+                        (AutoDropEnabled ? _dropGravity : 0)
+                    );
+                    if (!TryMoveBlockUpOrDown(down))
                     {
                         DropBottom();
                     }

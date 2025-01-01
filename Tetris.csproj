@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\iconfont\iconfont.ttf" />
+    <EmbeddedResource Include="Assets\font\JetBrainsMono-Regular.ttf" />
     <EmbeddedResource Include="Assets\sound\tap-1.mp3" />
     <EmbeddedResource Include="Assets\sound\pop-1.mp3" />
     <EmbeddedResource Include="Assets\sound\pop-2.mp3" />
@@ -36,12 +37,12 @@
       <Link>PanelAnimation.cs</Link>
       <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="PanelFunctions\PanelButton.cs">
-      <Link>PanelButton.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
     <Compile Update="PanelFunctions\PanelDraw.cs">
       <Link>PanelDraw.cs</Link>
+      <DependentUpon>Panel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="PanelFunctions\PanelElements.cs">
+      <Link>PanelElements.cs</Link>
       <DependentUpon>Panel.cs</DependentUpon>
     </Compile>
     <Compile Update="PanelFunctions\PanelKeySystem.cs">

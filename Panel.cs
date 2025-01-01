@@ -33,12 +33,21 @@ namespace Tetris
 
         private bool Pause { get; set; } = false;
 
+        // For the game font
+        private readonly List<string> _fontResources = [
+            "iconfont", "JetBrainsMono",
+        ];
         private PrivateFontCollection _pfc = new();
+        // Maybe load font exception if not locked, unknown reason
+        private readonly object _fontLoadLock = new(); 
+
+        // The Stopwatch keeps track of the time the game is played
+        private readonly Stopwatch _stopwatch = new();
 
         public Panel()
         {
-            // Initialize the iconfont
-            InitializeIconfont();
+            // Initialize the font
+            InitializeFontResources();
 
             // Initialize the sounds
             InitializeSounds();
@@ -59,29 +68,41 @@ namespace Tetris
             this.KeyUp += (sender, e) => KeyUpHandler(e);
             this.DoubleBuffered = true;
             this.Load += new EventHandler(PanelLoad);
+
+            _stopwatch.Start();
         }
 
-        private void InitializeIconfont()
+        private void InitializeFontResources()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceNames = assembly.GetManifestResourceNames();
-
-            // Find the iconfont file in the resources
-            var iconfontName = resourceNames.FirstOrDefault(name => name.Contains("iconfont"))
-                ?? throw new Exception("Iconfont file not found.");
-
-            using var fontStream = assembly.GetManifestResourceStream(iconfontName)
-                ?? throw new Exception($"Failed to load the iconfont file: {iconfontName}");
-
-            var fontData = new byte[fontStream.Length];
-            fontStream.Read(fontData, 0, fontData.Length);
-            fontStream.Close();
-
-            unsafe
+            lock (_fontLoadLock)
             {
-                fixed (byte* ptr = fontData)
+                var assembly = Assembly.GetExecutingAssembly();
+                var resourceNames = assembly.GetManifestResourceNames();
+
+                foreach (var value in _fontResources)
                 {
-                    _pfc.AddMemoryFont((IntPtr)ptr, fontData.Length);
+                    var name = resourceNames.FirstOrDefault(n => n.Contains($"{value}"))
+                        ?? throw new Exception($"Cannot find the {value} font resource");
+
+                    using var stream = assembly.GetManifestResourceStream(name)
+                        ?? throw new Exception($"Failed to load the font resource: {name}");
+
+                    var data = new byte[stream.Length];
+                    stream.Read(data, 0, data.Length);
+
+                    unsafe
+                    {
+                        fixed (byte* ptr = data)
+                        {
+                            _pfc.AddMemoryFont((IntPtr)ptr, data.Length);
+                        }
+                    }
+                }
+
+                Debug.WriteLine($"Font count: {_pfc.Families.Length}");
+                foreach (var f in _pfc.Families)
+                {
+                    Debug.WriteLine(f.Name);
                 }
             }
         }
@@ -109,6 +130,7 @@ namespace Tetris
             GameOver = false;
 
             // Update pause message and animation
+            _stopwatch.Restart();
             PauseButtonClick();
             PauseButtonClick();
             ResetAllAnimation();
@@ -127,6 +149,7 @@ namespace Tetris
             base.OnResize(e);
             AdujustPanelSize();
             ResizeSettings();
+            this.Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)

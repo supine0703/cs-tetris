@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Reflection;
+﻿using System.Reflection;
 using NAudio.Wave;
 
 namespace Tetris
@@ -67,7 +65,6 @@ namespace Tetris
                     ?? throw new Exception($"Failed to load the sound resource: {name}");
                 var data = new byte[stream.Length];
                 stream.Read(data, 0, data.Length);
-                stream.Close();
                 _sounds[key] = new(data);
             }
         }

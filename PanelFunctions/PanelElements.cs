@@ -87,5 +87,45 @@ namespace Tetris
                 base.OnMouseUp(e);
             }
         }
+
+        // Custom label class for the theme switch
+        private class CustomLabel : Label
+        {
+            public bool UsingDark { get; set; } = true;
+
+            public Color ForeColor1 { get; set; } = Color.White;
+            public Color ForeColor2 { get; set; } = Color.Black;
+
+            public CustomLabel()
+            {
+                this.TextAlign = ContentAlignment.MiddleCenter;
+                this.TabStop = false;
+                this.SetStyle(ControlStyles.Selectable, false);
+            }
+
+            protected override void OnPaint(PaintEventArgs e)
+            {
+                this.BackColor = Color.Transparent;
+                this.ForeColor = UsingDark ? ForeColor1 : ForeColor2;
+                base.OnPaint(e);
+            }
+        }
+
+        // Custom numeric up down class for unable to be selected
+        private class CustomNumericUpDown : NumericUpDown
+        {
+            public CustomNumericUpDown()
+            {
+                this.TextAlign = HorizontalAlignment.Center;
+                this.TabStop = false;
+                this.SetStyle(ControlStyles.Selectable, false);
+            }
+
+            protected override void OnGotFocus(EventArgs e)
+            {
+                base.OnGotFocus(e);
+                this.Parent?.Focus();
+            }
+        }
     }
 }

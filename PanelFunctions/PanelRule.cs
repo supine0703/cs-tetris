@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net.Quic;
-
-namespace Tetris
+﻿namespace Tetris
 {
     internal partial class Panel
     {
