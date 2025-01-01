@@ -10,34 +10,51 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\iconfont\*" />
+    <None Remove="Assets\*\*" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\iconfont\iconfont.ttf" />
+    <EmbeddedResource Include="Assets\sound\tap-1.mp3" />
+    <EmbeddedResource Include="Assets\sound\pop-1.mp3" />
+    <EmbeddedResource Include="Assets\sound\pop-2.mp3" />
+    <EmbeddedResource Include="Assets\sound\ping-1.mp3" />
+    <EmbeddedResource Include="Assets\sound\linging-1.mp3" />
+    <EmbeddedResource Include="Assets\sound\fall_to_the_ground-1.mp3" />
+    <EmbeddedResource Include="Assets\sound\game_over-1.mp3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Update="BlockData.cs">
       <DependentUpon>Block.cs</DependentUpon>
     </Compile>
-    <Compile Update="PanelAnimation.cs">
-      <DependentUpon>Panel.cs</DependentUpon>
+    <Compile Update="Panel\PanelAnimation.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="PanelButton.cs">
-      <DependentUpon>Panel.cs</DependentUpon>
+    <Compile Update="Panel\PanelButton.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="PanelDraw.cs">
-      <DependentUpon>Panel.cs</DependentUpon>
+    <Compile Update="Panel\PanelDraw.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="PanelRule.cs">
-      <DependentUpon>Panel.cs</DependentUpon>
+    <Compile Update="Panel\PanelKeySystem.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="PanelSettings.cs">
-      <DependentUpon>Panel.cs</DependentUpon>
+    <Compile Update="Panel\PanelRule.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
     </Compile>
-    <Compile Update="PanelTimer.cs">
-      <DependentUpon>Panel.cs</DependentUpon>
+    <Compile Update="Panel\PanelSettings.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Panel\PanelSound.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
+    </Compile>
+    <Compile Update="Panel\PanelTimer.cs">
+      <DependentUpon>Panel\Panel.cs</DependentUpon>
     </Compile>
   </ItemGroup>
 

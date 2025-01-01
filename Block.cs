@@ -2,25 +2,25 @@
 {
     internal struct Position(float x, float y)
     {
-        public float x = x;
-        public float y = y;
+        public float X { get; set; } = x;
+        public float Y { get; set; } = y;
 
-        public static Position operator *(Position a, float b) => new(a.x * b, a.y * b);
+        public static Position operator *(Position a, float b) => new(a.X * b, a.Y * b);
 
-        public static Position operator /(Position a, float b) => new(a.x / b, a.y / b);
+        public static Position operator /(Position a, float b) => new(a.X / b, a.Y / b);
 
-        public static Position operator +(Position a, Position b) => new(a.x + b.x, a.y + b.y);
+        public static Position operator +(Position a, Position b) => new(a.X + b.X, a.Y + b.Y);
 
-        public static Position operator -(Position a, Position b) => new(a.x - b.x, a.y - b.y);
+        public static Position operator -(Position a, Position b) => new(a.X - b.X, a.Y - b.Y);
     }
 
-    internal partial class Block(Block.E_BlockType type, Block.E_Orientation orientation, Position pos)
+    internal partial class Block(Block.E_Type type, Block.E_Orientation orientation, Position pos)
     {
         static public readonly Position DefaultPos = new(3, -3);
 
-        public Block(E_BlockType type) : this(type, E_Orientation.Up, DefaultPos) { }
+        public Block(E_Type type) : this(type, E_Orientation.Up, DefaultPos) { }
 
-        public enum E_BlockType
+        public enum E_Type
         {
             I = 0, O, T, J, L, S, Z, Count,
         }
@@ -39,7 +39,7 @@
         private Position _pos = pos;
 
         public Position Pos => _pos;
-        public E_BlockType BlockType => _blockData.BlockType;
+        public E_Type Type => _blockData.BlockType;
         public E_Orientation Orientation => _blockData.Orientation;
         public Position RotateCenter => _blockData.RotateCenter;
         public Position[] Placeholders => _blockData.Placeholders;
@@ -65,10 +65,11 @@
             return _blockData.AllWallKickTable[((int)rotation * (int)E_Orientation.Count) + (int)_blockData.Orientation];
         }
 
+        public void TwiceRptate() { _blockData.TwiceRotate(); }
         public void RightRotate() { _blockData.RightRotate(); }
         public void LeftRotate() { _blockData.LeftRotate(); }
 
-        public void MoveLeftOrRight(float x) { _pos.x += x; }
-        public void MoveUpOrDown(float y) { _pos.y += y; }
+        public void MoveLeftOrRight(float x) { _pos.X += x; }
+        public void MoveUpOrDown(float y) { _pos.Y += y; }
     }
 }

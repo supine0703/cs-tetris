@@ -7,9 +7,9 @@ namespace Tetris
         private readonly Timer _timer = new();
         private const int _TimerInterval = 16;  // 62.5 FPS (frame per second)
 
-        private float _dropGravity = 0.024f;                // (1/40)G (cell per frame)
+        private float _dropGravity = 0.024f;                // (1/40)G (cell per frame) (here 'G' refer to 60 frames per second)
         private float _softDropGravityIncrease = 0.616f;    // (2/3)G  (0.64 * 62.5 = 40 cell per s)
-        private const float _MaxGravity = 0.96f;            // 1G cell per frame (0.96 * 62.5 = 60 cell per s)
+        private const float _MaxGravity = 0.96f;            // 1G      (0.96 * 62.5 = 60 cell per s)
 
         private int _autoEatProgress = 0;           // in ms
         private int _autoEatTotalProgress = 600;    // 0.6s
@@ -46,14 +46,24 @@ namespace Tetris
                 }
 
                 // Auto dropping
-                if (_dropGravity > 0)
+                if (_dropGravity > 0 && CanDrop() != 0)
                 {
                     // Check if press the key for dropping
                     var pressed = _canSoftDropKeys.Any(key => _pressedKeys.Contains(key));
-                    
+
+                    if (pressed && _autoEatProgress == 0)
+                    {
+                        _sounds["Move"]?.Play();
+                    }
+
                     if (!TryMoveBlockUpOrDown(_dropGravity + (pressed ? _softDropGravityIncrease : 0)))
                     {
                         DropBottom();
+                    }
+
+                    if (CanDrop() == 0)
+                    {
+                        _sounds["Fall"]?.Play();
                     }
                 }
             }
@@ -64,7 +74,7 @@ namespace Tetris
         private void ResetAutoEatProceed() { _autoEatProgress = 0; }
 
         private float AutoEatProgressPercent() => (float)_autoEatProgress / _autoEatTotalProgress;
-    
+
         // === For delay to do somethings ===
         private List<(int frame, Action? action)> _delayToDo = [];
 
@@ -77,24 +87,15 @@ namespace Tetris
                 return;
             }
 
-            if (_delayToDo.Count == 0)
+            _delayToDo = [.. _delayToDo.Select(toDo => (frame: toDo.frame - 1, toDo.action)).Where(toDo =>
             {
-                return;
-            }
-
-            for (int i = _delayToDo.Count - 1; i >= 0; i--)
-            {
-                var (frame, action) = _delayToDo[i];
-                if (--frame <= 0)
+                if (toDo.frame <= 0)
                 {
-                    action?.Invoke();
-                    _delayToDo.RemoveAt(i);
+                    toDo.action?.Invoke();
+                    return false;
                 }
-                else
-                {
-                    _delayToDo[i] = (frame, action);
-                }
-            }
+                return true;
+            })];
         }
     }
 }

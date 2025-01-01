@@ -7,14 +7,12 @@
         private Queue<int> _bagIndexs;
 
         public BagRandomizer() : this([]) { }
-        public BagRandomizer(Array items) : this(items.Cast<T>().ToList()) { }
-        public BagRandomizer(List<T> items)
-        {
+        public BagRandomizer(T[] items) {
             _items = new(items);
             _bagIndexs = new(_items.Count);
         }
 
-        public void Reset(List<T> items)
+        public void Reset(T[] items)
         {
             _items = new(items);
             _bagIndexs = new(_items.Count);

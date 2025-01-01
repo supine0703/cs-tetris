@@ -55,9 +55,9 @@ namespace Tetris
                         int y = startY + i * _blockSize;
 
                         // Fill the block if it has one
-                        if (_playfieldInfo[i][j].state == E_CellState.Occupied)
+                        if (_playfieldInfo[i][j].State == E_CellState.Occupied)
                         {
-                            using SolidBrush brush = new(GetColor(_playfieldInfo[i][j].belongsTo));
+                            using SolidBrush brush = new(GetColor(_playfieldInfo[i][j].BelongsTo));
                             g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                             g.DrawRectangle(outerPen, x, y, _blockSize, _blockSize);
                         }
@@ -92,41 +92,41 @@ namespace Tetris
 
             // Draw the shadow of the block
             using (Pen shadowPen = new(Color.FromArgb(81, ForegroundColor), 3))
-            using (SolidBrush shadowBrush = new(Color.FromArgb(81, GetColor(_currentBlock.BlockType))))
+            using (SolidBrush shadowBrush = new(Color.FromArgb(81, GetColor(_currentBlock.Type))))
             using (SolidBrush centerBrush = new(Color.FromArgb(81, ForegroundColor)))
             {
-                Block block = new(_currentBlock.BlockType, _currentBlock.Orientation, pos);
+                Block block = new(_currentBlock.Type, _currentBlock.Orientation, pos);
                 DropBottom(block);
                 foreach (var placeholder in block.Placeholders)
                 {
-                    var x = startX + (placeholder.x + block.Pos.x) * _blockSize;
-                    var y = startY + (placeholder.y + block.Pos.y) * _blockSize;
+                    var x = startX + (placeholder.X + block.Pos.X) * _blockSize;
+                    var y = startY + (placeholder.Y + block.Pos.Y) * _blockSize;
                     // Draw the shadow cells
                     g.FillRectangle(shadowBrush, x, y, _blockSize, _blockSize);
                     g.DrawRectangle(shadowPen, x, y, _blockSize, _blockSize);
                     // Draw the in the center of the shadow center
-                    var shadowCenterX = startX + (block.RotateCenter.x + block.Pos.x) * _blockSize;
-                    var shadowCenterY = startY + (block.RotateCenter.y + block.Pos.y) * _blockSize;
+                    var shadowCenterX = startX + (block.RotateCenter.X + block.Pos.X) * _blockSize;
+                    var shadowCenterY = startY + (block.RotateCenter.Y + block.Pos.Y) * _blockSize;
                     g.FillEllipse(centerBrush, shadowCenterX - radius, shadowCenterY - radius, radius * 2, radius * 2);
                 }
             }
             // Draw the block
             using (Pen pen = new(ForegroundColor, 3))
-            using (SolidBrush brush = new(GetColor(_currentBlock.BlockType)))
+            using (SolidBrush brush = new(GetColor(_currentBlock.Type)))
             using (SolidBrush centerBrush = new(ForegroundColor))
             {
                 foreach (var placeholder in _currentBlock.Placeholders)
                 {
-                    var x = startX + (placeholder.x + pos.x) * _blockSize;
-                    var y = startY + (placeholder.y + pos.y) * _blockSize;
+                    var x = startX + (placeholder.X + pos.X) * _blockSize;
+                    var y = startY + (placeholder.Y + pos.Y) * _blockSize;
 
                     // Draw the block cells
                     g.FillRectangle(brush, x, y, _blockSize, _blockSize);
                     g.DrawRectangle(pen, x, y, _blockSize, _blockSize);
                 }
                 // Draw the in the center of the block
-                var centerX = startX + (_currentBlock.RotateCenter.x + pos.x) * _blockSize;
-                var centerY = startY + (_currentBlock.RotateCenter.y + pos.y) * _blockSize;
+                var centerX = startX + (_currentBlock.RotateCenter.X + pos.X) * _blockSize;
+                var centerY = startY + (_currentBlock.RotateCenter.Y + pos.Y) * _blockSize;
                 g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
             }
         }
@@ -154,17 +154,17 @@ namespace Tetris
             foreach (Block block in _nextBlocks)
             {
                 using Pen pen = new(ForegroundColor, 1);
-                using SolidBrush brush = new(GetColor(block.BlockType));
+                using SolidBrush brush = new(GetColor(block.Type));
                 using SolidBrush centerBrush = new(ForegroundColor);
 
                 // Define the offset for the block center
                 float xDiff = 0;
                 float yDiff = 0;
-                if (block.BlockType == Block.E_BlockType.I)
+                if (block.Type == Block.E_Type.I)
                 {
                     yDiff = blockSize * 0.5f;
                 }
-                else if (block.BlockType != Block.E_BlockType.O)
+                else if (block.Type != Block.E_Type.O)
                 {
                     xDiff = blockSize * 0.5f;
                 }
@@ -172,16 +172,16 @@ namespace Tetris
                 // Draw the block
                 foreach (var placeholder in block.Placeholders)
                 {
-                    var x = startX + placeholder.x * blockSize;
-                    var y = startY + placeholder.y * blockSize;
+                    var x = startX + placeholder.X * blockSize;
+                    var y = startY + placeholder.Y * blockSize;
 
                     // Draw the block cells
                     g.FillRectangle(brush, x + xDiff, y + yDiff, blockSize, blockSize);
                     g.DrawRectangle(pen, x + xDiff, y + yDiff, blockSize, blockSize);
                 }
                 // Draw the shadow center
-                var centerX = startX + (block.RotateCenter.x) * blockSize + xDiff;
-                var centerY = startY + (block.RotateCenter.y) * blockSize + yDiff;
+                var centerX = startX + (block.RotateCenter.X) * blockSize + xDiff;
+                var centerY = startY + (block.RotateCenter.Y) * blockSize + yDiff;
                 var radius = blockSize * 0.125f;
                 g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
 
@@ -215,17 +215,17 @@ namespace Tetris
             if (block is not null)
             {
                 using Pen pen = new(ForegroundColor, 1);
-                using SolidBrush brush = new(GetColor(block.BlockType));
+                using SolidBrush brush = new(GetColor(block.Type));
                 using SolidBrush centerBrush = new(ForegroundColor);
 
                 // Define the offset for the block center
                 float xDiff = 0;
                 float yDiff = 0;
-                if (block.BlockType == Block.E_BlockType.I)
+                if (block.Type == Block.E_Type.I)
                 {
                     yDiff = blockSize / 2;
                 }
-                else if (block.BlockType != Block.E_BlockType.O)
+                else if (block.Type != Block.E_Type.O)
                 {
                     xDiff = blockSize / 2;
                 }
@@ -233,16 +233,16 @@ namespace Tetris
                 // Draw the block
                 foreach (var placeholder in block.Placeholders)
                 {
-                    var x = startX + placeholder.x * blockSize;
-                    var y = startY + placeholder.y * blockSize;
+                    var x = startX + placeholder.X * blockSize;
+                    var y = startY + placeholder.Y * blockSize;
 
                     // Draw the block cells
                     g.FillRectangle(brush, x + xDiff, y + yDiff, blockSize, blockSize);
                     g.DrawRectangle(pen, x + xDiff, y + yDiff, blockSize, blockSize);
                 }
                 // Draw the shadow center
-                var centerX = startX + (block.RotateCenter.x) * blockSize + xDiff;
-                var centerY = startY + (block.RotateCenter.y) * blockSize + yDiff;
+                var centerX = startX + (block.RotateCenter.X) * blockSize + xDiff;
+                var centerY = startY + (block.RotateCenter.Y) * blockSize + yDiff;
                 var radius = blockSize * 0.125f;
                 g.FillEllipse(centerBrush, centerX - radius, centerY - radius, radius * 2, radius * 2);
 
@@ -269,27 +269,27 @@ namespace Tetris
             g.DrawArc(pen, startX, startY, radius * 2, radius * 2, -90, sweepAngle);
         }
 
-        private Color GetColor(Block.E_BlockType type) => UsingDark ? (type switch
+        private Color GetColor(Block.E_Type type) => UsingDark ? (type switch
         {
             // Select the color based on the block type for light mode
-            Block.E_BlockType.I => Color.FromArgb(121, 184, 169), // 青绿
-            Block.E_BlockType.O => Color.FromArgb(212, 177, 72),  // 黄色
-            Block.E_BlockType.T => Color.FromArgb(172, 69, 165),  // 紫红色
-            Block.E_BlockType.J => Color.FromArgb(81, 120, 220),  // 蓝色
-            Block.E_BlockType.L => Color.FromArgb(220, 130, 70),  // 橙红色
-            Block.E_BlockType.S => Color.FromArgb(52, 139, 43),   // 深绿色
-            Block.E_BlockType.Z => Color.FromArgb(201, 70, 90),   // 红色
+            Block.E_Type.I => Color.FromArgb(121, 184, 169), // 青绿
+            Block.E_Type.O => Color.FromArgb(212, 177, 72),  // 黄色
+            Block.E_Type.T => Color.FromArgb(172, 69, 165),  // 紫红色
+            Block.E_Type.J => Color.FromArgb(81, 120, 220),  // 蓝色
+            Block.E_Type.L => Color.FromArgb(220, 130, 70),  // 橙红色
+            Block.E_Type.S => Color.FromArgb(52, 139, 43),   // 深绿色
+            Block.E_Type.Z => Color.FromArgb(201, 70, 90),   // 红色
             _ => BackgroundColor,
         }) : (type switch
         {
             // Select the color based on the block type for light mode
-            Block.E_BlockType.I => Color.FromArgb(184, 231, 223), // 青绿
-            Block.E_BlockType.O => Color.FromArgb(240, 230, 140), // 黄色
-            Block.E_BlockType.T => Color.FromArgb(200, 150, 180), // 紫红色
-            Block.E_BlockType.J => Color.FromArgb(100, 150, 220), // 蓝色
-            Block.E_BlockType.L => Color.FromArgb(220, 130, 70),  // 橙红色
-            Block.E_BlockType.S => Color.FromArgb(130, 170, 110), // 绿松石色
-            Block.E_BlockType.Z => Color.FromArgb(230, 100, 100), // 红色
+            Block.E_Type.I => Color.FromArgb(184, 231, 223), // 青绿
+            Block.E_Type.O => Color.FromArgb(240, 230, 140), // 黄色
+            Block.E_Type.T => Color.FromArgb(200, 150, 180), // 紫红色
+            Block.E_Type.J => Color.FromArgb(100, 150, 220), // 蓝色
+            Block.E_Type.L => Color.FromArgb(220, 130, 70),  // 橙红色
+            Block.E_Type.S => Color.FromArgb(130, 170, 110), // 绿松石色
+            Block.E_Type.Z => Color.FromArgb(230, 100, 100), // 红色
             _ => BackgroundColor,
         });
     }

@@ -1,132 +1,9 @@
-﻿using System.Diagnostics;
-using System.Drawing.Text;
-using System.Reflection;
-using System.Security.Policy;
-using Timer = System.Windows.Forms.Timer;
+﻿using Timer = System.Windows.Forms.Timer;
 
 namespace Tetris
 {
-    internal partial class Panel : UserControl
+    internal partial class Panel
     {
-        public enum E_CellState
-        {
-            Empty = 0, Clearing, Occupied,
-        }
-
-        private struct CellInfo(E_CellState state, Block.E_BlockType belongsTo)
-        {
-            
-            public E_CellState state = state;
-            public Block.E_BlockType belongsTo = belongsTo;
-
-            public CellInfo() : this(E_CellState.Empty, Block.E_BlockType.Count) { }
-        }
-
-        private const int _MarginRowNum = 5;
-        private const int _PrimaryBlockSize = (int)Block.E_BlockType.Count - 1;
-        private const int _Rows = 20;
-        private const int _Columns = 10;
-
-        private readonly List<CellInfo[]> _playfieldInfo = new(_Rows + _MarginRowNum);
-        private readonly Queue<Block> _nextBlocks = new(_PrimaryBlockSize);
-        private Block? _currentBlock;
-        private Block? _holdBlock;
-
-        private bool Pause { get; set; } = false;
-
-        private PrivateFontCollection _pfc = new();
-
-        public Panel()
-        {
-            // Initialize the iconfont
-            InitializeIconfont();
-
-            // Initialize the randomizer, playfield info, blocks, hold block
-            Restart();
-
-            // Initialize the timer
-            InitializeTimer();
-
-            // Initialize the key system
-            InitializeKeySystem();
-
-            // Initialize the panel settings
-            InitializeSettings();
-
-            this.KeyDown += (sender, e) => KeyDownHandler(e);
-            this.KeyUp += (sender, e) => KeyUpHandler(e);
-            this.DoubleBuffered = true;
-        }
-
-        private void InitializeIconfont()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceNames = assembly.GetManifestResourceNames();
-
-            // Find the iconfont file in the resources
-            var iconfontName = resourceNames.FirstOrDefault(name => name.Contains("iconfont"))
-                ?? throw new Exception("Iconfont file not found.");
-
-            using var fontStream = assembly.GetManifestResourceStream(iconfontName)
-                ?? throw new Exception($"Failed to load the iconfont file: {iconfontName}");
-
-            var fontData = new byte[fontStream.Length];
-            fontStream.Read(fontData, 0, fontData.Length);
-            fontStream.Close();
-
-            unsafe
-            {
-                fixed (byte* ptr = fontData)
-                {
-                    _pfc.AddMemoryFont((IntPtr)ptr, fontData.Length);
-                }
-            }
-        }
-
-        private void Restart()
-        {
-            // Reset the randomizer
-            InitializeRandomizer();
-
-            // Reset the playfield info
-            _playfieldInfo.Clear();
-            foreach (var _ in Enumerable.Range(0, _playfieldInfo.Capacity))
-            {
-                _playfieldInfo.Add(new CellInfo[_Columns]);
-            }
-
-            // Reset the blocks
-            _nextBlocks.Clear();
-            foreach (var _ in Enumerable.Range(0, _PrimaryBlockSize))
-            {
-                _nextBlocks.Enqueue(GetRandomBlock());
-            }
-
-            // Reset the hold block
-            _holdBlock = null;
-            RandomBlock();
-
-            // Start timer
-            _timer.Start();
-        }
-
-        protected override void OnResize(EventArgs e)
-        {
-            base.OnResize(e);
-            AdujustPanelSize();
-            ResizeSettings();
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            DrawBackground(e.Graphics);
-            DrawPlayfield(e.Graphics);
-            DrawBlock(e.Graphics);
-            DrawBeEatProgress(e.Graphics);
-            DrawAllAnimationFrame(e.Graphics);
-        }
-
         // === Key System ===
         private readonly HashSet<Keys> _pressedKeys = [];
 
@@ -145,6 +22,7 @@ namespace Tetris
         // === Key for rotating ===
         private readonly HashSet<Keys> _canRotateLeftKeys = [Keys.J, Keys.X];
         private readonly HashSet<Keys> _canRotateRightKeys = [Keys.K, Keys.C];
+        private readonly HashSet<Keys> _canRotate180Keys = [Keys.L, Keys.V];
 
         // === Key for hold ===
         private readonly HashSet<Keys> _canHoldKeys = [Keys.Space];
@@ -203,6 +81,10 @@ namespace Tetris
                 {
                     changed = TryRightRotate();
                 }
+                else if (_canRotate180Keys.Contains(e.KeyCode))
+                {
+                    changed = TryTwiceRotate();
+                }
                 // Move
                 else if (_canMoveLeftKeys.Contains(e.KeyCode))
                 {
@@ -228,8 +110,8 @@ namespace Tetris
                 {
                     Size boardSize = new(_Columns * _blockSize, _Rows * _blockSize / 6);
                     var leftX = (ClientSize.Width - boardSize.Width) * 0.5f;
-                    var leftY = (ClientSize.Height - boardSize.Height * 6) * 0.5f;
-                    StartCflAnimation([new(new((int)leftX, (int)leftY), boardSize), new(new((int)leftX, (int)leftY + 400), boardSize)]);
+                    var leftY = (ClientSize.Height - boardSize.Height * 8) * 0.5f;
+                    StartHdAnimation([new Rectangle(new((int)leftX, (int)leftY), boardSize)], Block.E_Type.T);
                 }
                 // ...
 

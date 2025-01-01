@@ -12,11 +12,13 @@ namespace Tetris
             }
 
             CflAnimationNextFrame();
+            HdAnimationNextFrame();
         }
 
         private void DrawAllAnimationFrame(Graphics g)
         {
             DrawCflAnimationFrame(g);
+            DrawHdAnimationFrame(g);
         }
 
         // === Clear Full Lines Animation ===
@@ -24,11 +26,9 @@ namespace Tetris
         private int _cflAnimationCurrentFrame = _CflTotalAnimationFrames;
         private List<Rectangle> _cflRects = [];
         private List<Rectangle> _cflBkRects = [];
-        private List<int> _cflRectHeights = [];
         private Action? _onCflAnimationEnd = null;
         private Color CflCenterColor => UsingDark ? Color.FromArgb(252, 249, 176) : Color.FromArgb(171, 32, 164);
         private const bool CLF_A_DRAW_CORNORS = false; // It seems unnecessary
-
 
         private void StartCflAnimation(List<Rectangle> rectangles, Action? onAnimationEnds = null, int frame = 0)
         {
@@ -38,7 +38,6 @@ namespace Tetris
 
             _cflRects = new(rectangles);
             _cflBkRects = new(rectangles);
-            _cflRectHeights = _cflRects.Select(r => r.Height).ToList();
         }
 
         private void CflAnimationNextFrame()
@@ -63,7 +62,6 @@ namespace Tetris
 
             foreach (var i in Enumerable.Range(0, _cflRects.Count))
             {
-
                 var rect = _cflRects[i];
                 var bkRect = _cflBkRects[i];
 
@@ -213,6 +211,42 @@ namespace Tetris
 
                 // Update the rectangle
                 _cflRects[i] = rect;
+            }
+        }
+
+        // === Hard Drop Animation ===
+        private const int _HdTotalAnimationFrames = 15;
+        private List<(int frame, Rectangle rect, Block.E_Type belongsTo)> _hdAnimations = [];
+
+        private void StartHdAnimation(Rectangle[] rectangle, Block.E_Type belongsTo)
+        {
+            _hdAnimations.AddRange(rectangle.Select(r => (0, r, belongsTo)));
+        }
+
+        private void HdAnimationNextFrame()
+        {
+            _hdAnimations = [.. _hdAnimations
+                .Select(hdA => (frame: hdA.frame + 1, hdA.rect, hdA.belongsTo))
+                .Where(hdA => hdA.frame < _HdTotalAnimationFrames)
+            ];
+        }
+
+        private void DrawHdAnimationFrame(Graphics g)
+        {
+            foreach (var (frame, rect, belongsTo) in _hdAnimations)
+            {
+                // The progress of the animation is
+                // Math.Sqrt if wanna first fast and then slow
+                // Math.Pow if wanna first slow and then fast
+                var alpha = 255 - (int)(255 * (1.0 * frame / _HdTotalAnimationFrames));
+
+                using LinearGradientBrush brush = new(
+                    rect,
+                    Color.FromArgb(Math.Max(0, alpha - 100), GetColor(belongsTo)), 
+                    Color.FromArgb(alpha, GetColor(belongsTo)),
+                    LinearGradientMode.Vertical
+                );
+                g.FillRectangle(brush, rect);
             }
         }
     }
