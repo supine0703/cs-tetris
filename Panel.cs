@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Drawing.Text;
 using System.Reflection;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Tetris
 {
@@ -52,23 +53,11 @@ namespace Tetris
             // Initialize the sounds
             InitializeSounds();
 
-            // Initialize the randomizer, playfield info, blocks, hold block
-            Restart();
-
-            // Initialize the timer
-            InitializeTimer();
-
-            // Initialize the key system
-            InitializeKeySystem();
-
-            // Initialize the panel settings
-            InitializeSettings();
-
             this.KeyDown += (sender, e) => KeyDownHandler(e);
             this.KeyUp += (sender, e) => KeyUpHandler(e);
             this.DoubleBuffered = true;
-            this.Load += new EventHandler(PanelLoad);
-
+            this.Load += PanelLoad;
+            
             _stopwatch.Start();
         }
 
@@ -142,6 +131,17 @@ namespace Tetris
             {
                 this.ParentForm.Deactivate += (sender, e) => PauseButtonClick();
             }
+            // Initialize the randomizer, playfield info, blocks, hold block
+            Restart();
+
+            // Initialize the key system
+            InitializeKeySystem();
+
+            // Initialize the panel settings
+            InitializeSettings();
+
+            // Initialize the timer
+            InitializeTimer();
         }
 
         protected override void OnResize(EventArgs e)
@@ -168,6 +168,7 @@ namespace Tetris
             if (disposing)
             {
                 DisposeSounds();
+                DisposeTimer();
             }
             base.Dispose(disposing);
         }

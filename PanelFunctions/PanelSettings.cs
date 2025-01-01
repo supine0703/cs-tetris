@@ -7,8 +7,10 @@ namespace Tetris
         private readonly CustonButton _themeButton = new();
         private readonly CustonButton _pauseButton = new();
         private readonly CustonButton _restartButton = new();
-        private readonly Label _messageLabel = new();
+        private readonly CustonButton _bgmButton = new();
+        private readonly Label _fpsLabel = new();
         private readonly Label _watchLabel = new();
+        private readonly Label _messageLabel = new();
         private readonly Label _lineClearLabel = new();
         private readonly Label _totalScoreLabel = new();
         private float MassageLabelRatio { get; set; } = 1.0f;
@@ -22,8 +24,27 @@ namespace Tetris
         private readonly CustomLabel _howToPlayLabel_1 = new();
         private readonly CustomLabel _howToPlayLabel_2 = new();
 
+        private void UniformSetLabel(Label label)
+        {
+            if (label == null)
+            {
+                return;
+            }
+            label.TextAlign = ContentAlignment.MiddleCenter;
+            label.TabStop = false;
+            label.BackColor = Color.Transparent;
+            label.Font = new(_pfc.Families[1], 1);
+
+            label.UseCompatibleTextRendering = true;
+        }
+
         private void InitializeSettings()
         {
+            // Initialize the fps label
+            UniformSetLabel(_fpsLabel);
+            _fpsLabel.TextAlign = ContentAlignment.TopLeft;
+            this.Controls.Add(_fpsLabel);
+
             // Initialize the watch label
             UniformSetLabel(_watchLabel);
             this.Controls.Add(_watchLabel);
@@ -59,6 +80,13 @@ namespace Tetris
             _restartButton.Click += (sender, e) => RestartButtonClick();
             this.Controls.Add(_restartButton);
 
+            // Initialize the bgm button
+            _bgmButton.Text = BgmMute ? "\ue619" : "\ue618";
+            _bgmButton.Font = new Font(_pfc.Families[0], 1);
+            _bgmButton.UseCompatibleTextRendering = true;
+            _bgmButton.Click += (sender, e) => BgmButtonClick();
+            this.Controls.Add(_bgmButton);
+
             // Initialize the how to play label
             InitHowToPlayLabel();
 
@@ -69,6 +97,8 @@ namespace Tetris
             _autoEatLabel.UseCompatibleTextRendering = true;
             this.Controls.Add(_autoEatLabel);
             _autoEatButton.Text = $"{(AutoEatEnabled ? "On" : "Off")}";
+            _autoEatButton.Font = new(_pfc.Families[1], 1);
+            _autoEatButton.UseCompatibleTextRendering = true;
             _autoEatButton.Click += (sender, e) => AutoEatButtonClick();
             this.Controls.Add(_autoEatButton);
 
@@ -79,10 +109,13 @@ namespace Tetris
             _autoDropLabel.UseCompatibleTextRendering = true;
             this.Controls.Add(_autoDropLabel);
             _autoDropButton.Text = $"{(AutoEatEnabled ? "On" : "Off")}";
+            _autoDropButton.Font = new(_pfc.Families[1], 1);
+            _autoDropButton.UseCompatibleTextRendering = true;
             _autoDropButton.Click += (sender, e) => AutoDropButtonClick();
             this.Controls.Add(_autoDropButton);
 
             // Initialize some ...
+            RefushTotalScore();
             ThemeButtonClick();
             ThemeButtonClick();
 
@@ -119,6 +152,14 @@ namespace Tetris
                 _pauseButton.Font = new Font(_pauseButton.Font.FontFamily, blockSize * 0.593f + 1, _pauseButton.Font.Style);
             }
 
+            // Resize the bgm button (right)
+            {
+                var s = (int)(blockSize * 1.92f);
+                _bgmButton.Size = new(s, s);
+                _bgmButton.Location = new((int)(rightX + s * 1.35f), (int)rightY - s);
+                _bgmButton.Font = new Font(_bgmButton.Font.FontFamily, blockSize * 0.593f + 1, _bgmButton.Font.Style);
+            }
+
             // Resize the restart button (left)
             {
                 var s = (int)(blockSize * 1.92f);
@@ -136,10 +177,10 @@ namespace Tetris
 
             // Resize the how to play label (right)
             {
-                _howToPlayLabel_1.Size = new((int)(width * 0.72), (int)(blockSize * 8));
+                _howToPlayLabel_1.Size = new((int)(width * 0.72), (int)(blockSize * 8.8f));
                 _howToPlayLabel_1.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 4));
                 _howToPlayLabel_1.Font = new(_howToPlayLabel_1.Font.FontFamily, blockSize * 0.211f + 1, _howToPlayLabel_1.Font.Style);
-                _howToPlayLabel_2.Size = new((int)(width * 0.42), (int)(blockSize * 8));
+                _howToPlayLabel_2.Size = new((int)(width * 0.42), (int)(blockSize * 8.8f));
                 _howToPlayLabel_2.Location = new((int)(leftX - width * 0.28), (int)(leftY + height + blockSize * 4));
                 _howToPlayLabel_2.Font = new(_howToPlayLabel_2.Font.FontFamily, blockSize * 0.211f + 1, _howToPlayLabel_2.Font.Style);
             }
@@ -147,7 +188,7 @@ namespace Tetris
             // Resize the auto eat label, button, ... (left)
             {
                 Size s = new((int)width, (int)(blockSize * 1.5f));
-                Point l = new((int)(leftX - width), (int)(leftY + height + blockSize * 13));
+                Point l = new((int)(leftX - width), (int)(leftY + height + blockSize * 12));
 
                 _autoEatLabel.Size = s;
                 _autoEatLabel.Location = l;
@@ -155,58 +196,57 @@ namespace Tetris
                 l.Offset(0, (int)(blockSize * 1.5f));
                 _autoEatButton.Size = s;
                 _autoEatButton.Location = l;
-                _autoEatButton.Font = new(_autoEatButton.Font.FontFamily, blockSize * 0.42f + 1, _autoEatButton.Font.Style);
+                _autoEatButton.Font = new(_autoEatButton.Font.FontFamily, blockSize * 0.397f + 1, _autoEatButton.Font.Style);
             }
 
             // Resize the auto drop label, button, ... (left)
             {
                 Size s = new((int)width, (int)(blockSize * 1.5f));
-                Point l = new((int)(leftX - width), (int)(leftY + height + blockSize * 17.3f));
+                Point l = new((int)(leftX - width), (int)(leftY + height + blockSize * 15.3f));
                 _autoDropLabel.Size = s;
                 _autoDropLabel.Location = l;
                 _autoDropLabel.Font = new(_autoDropLabel.Font.FontFamily, blockSize * 0.3301f + 1, _autoDropLabel.Font.Style);
                 l.Offset(0, (int)(blockSize * 1.5f));
                 _autoDropButton.Size = s;
                 _autoDropButton.Location = l;
-                _autoDropButton.Font = new(_autoDropButton.Font.FontFamily, blockSize * 0.42f + 1, _autoDropButton.Font.Style);
+                _autoDropButton.Font = new(_autoDropButton.Font.FontFamily, blockSize * 0.397f + 1, _autoDropButton.Font.Style);
             }
 
             // Resize the line clear label and total score labe (left)
             {
-                _lineClearLabel.Size = new((int)width, (int)blockSize * 2);
-                _lineClearLabel.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 19.3f));
-                _lineClearLabel.Font = new(_lineClearLabel.Font.FontFamily, blockSize * 0.228f + 1, _lineClearLabel.Font.Style);
+                _lineClearLabel.Size = new((int)width, (int)(blockSize * 1.6f));
+                _lineClearLabel.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 20.515f));
+                _lineClearLabel.Font = new(_lineClearLabel.Font.FontFamily, blockSize * 0.297f + 1, _lineClearLabel.Font.Style);
 
-                _totalScoreLabel.Size = new((int)width, (int)blockSize * 2);
-                _totalScoreLabel.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 21.3f));
-                _totalScoreLabel.Font = new(_totalScoreLabel.Font.FontFamily, blockSize * 0.228f + 1, _totalScoreLabel.Font.Style);
+                _totalScoreLabel.Size = new((int)width, (int)(blockSize * 1.6f));
+                _totalScoreLabel.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 19.333f));
+                _totalScoreLabel.Font = new(_totalScoreLabel.Font.FontFamily, blockSize * 0.297f + 1, _totalScoreLabel.Font.Style);
             }
 
             // Resize the watch label (left)
             {
-                _watchLabel.Size = new((int)width, (int)blockSize * 2);
+                _watchLabel.Size = new((int)width, (int)(blockSize * 1.6f));
                 _watchLabel.Location = new((int)(leftX - width), (int)(leftY + height + blockSize * 22));
                 _watchLabel.Font = new(_watchLabel.Font.FontFamily, (_blockSize * 0.228f + 1), _watchLabel.Font.Style);
             }
+
+            // Resize the fps label (left)
+            {
+                var s = (int)(blockSize * 1.92f);
+                _fpsLabel.Size = new((int)width / 2, s);
+                _fpsLabel.Location = new((int)(leftX - s * 2.5f), (int)leftY - s);
+                _fpsLabel.Font = new(_fpsLabel.Font.FontFamily, (_blockSize * 0.172f + 1), _fpsLabel.Font.Style);
+            }
         }
 
-        private void UniformSetLabel(Label label)
+        private void RefushFpsLabel()
         {
-            if (label == null)
-            {
-                return;
-            }
-            label.TextAlign = ContentAlignment.MiddleCenter;
-            label.TabStop = false;
-            label.BackColor = Color.Transparent;
-            label.Font = new(_pfc.Families[1], 1);
-
-            label.UseCompatibleTextRendering = true;
+            _fpsLabel.Text = $"{Fps:F2}";
         }
 
         private void RefushWatchLabel()
         {
-            TimeSpan elapsed = _stopwatch.Elapsed;
+            var elapsed = _stopwatch.Elapsed;
 
             if (elapsed.TotalSeconds < 10)
             {
@@ -234,9 +274,10 @@ namespace Tetris
             }
         }
 
-        private void RefushLineClearLabel()
+        private void RefushTotalScore()
         {
-            _lineClearLabel.Text = $"Line Clear: {_lineClearCount}";
+            _lineClearLabel.Text = $"Clear: {LineClearCount}";
+            _totalScoreLabel.Text = $"{TotalScore}";
         }
 
         private void RefushMessageFontSize()
@@ -255,8 +296,13 @@ namespace Tetris
             _themeButton.UsingDark = UsingDark;
             _pauseButton.UsingDark = UsingDark;
             _restartButton.UsingDark = UsingDark;
-            _messageLabel.ForeColor = UsingDark ? Color.FromArgb(255, 223, 100) : Color.Black;
+            _bgmButton.UsingDark = UsingDark;
+            
+            _messageLabel.ForeColor = UsingDark ? Color.FromArgb(255, 223, 100) : Color.DarkBlue;
+            _fpsLabel.ForeColor = UsingDark ? Color.FromArgb(255, 223, 100) : Color.DarkBlue;
             _watchLabel.ForeColor = UsingDark ? Color.White : Color.Black;
+            _lineClearLabel.ForeColor = UsingDark ? Color.White : Color.Black;
+            _totalScoreLabel.ForeColor = UsingDark ? Color.FromArgb(255, 223, 100) : Color.DarkBlue;
             _howToPlayLabel_1.UsingDark = UsingDark;
             _howToPlayLabel_2.UsingDark = UsingDark;
 
@@ -290,6 +336,13 @@ namespace Tetris
 
         private void RestartButtonClick() { Restart(); }
 
+        private void BgmButtonClick()
+        {
+            BgmMuteSwitch();
+            _bgmButton.Text = BgmMute ? "\ue619" : "\ue618";
+            this.Invalidate();
+        }
+
         private void AutoEatButtonClick()
         {
             AutoEatEnabled = !AutoEatEnabled;
@@ -319,6 +372,7 @@ namespace Tetris
                 ("Pause",       "P,Esc"),
                 ("Restart",     "R"),
                 ("Theme",       "T"),
+                ("BGM",         "B"),
                 ("L Move",      "A, ←"),
                 ("R Move",      "D, →"),
                 ("Soft Drop",   "S, ↓"),

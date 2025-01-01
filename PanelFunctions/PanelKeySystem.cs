@@ -69,6 +69,10 @@ namespace Tetris
                 {
                     ThemeButtonClick();
                 }
+                else if (e.KeyCode == Keys.B)
+                {
+                    BgmButtonClick();
+                }
                 else if (Pause)
                 {
                 }

@@ -28,6 +28,8 @@ namespace Tetris
             private Color ForegroundColor => UsingDark ? Color.White : Color.Black;
             private Color BoardColor => UsingDark ? Color.White : Color.Black;
 
+            public float FiletRatio { get; set; } = 0.333f;
+
             public CustonButton()
             {
                 this.TextAlign = ContentAlignment.MiddleCenter;
@@ -45,7 +47,7 @@ namespace Tetris
                 //e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
                 // Create a path for the rounded rectangle
-                int radius = Math.Min(this.Width, this.Height) / 3; // Filet radius
+                var radius = (int)(Math.Min(this.Width, this.Height) * FiletRatio); // Filet ratio
                 GraphicsPath path = new();
                 path.AddArc(new Rectangle(0, 0, radius, radius), 180, 90);
                 path.AddArc(new Rectangle(this.Width - radius, 0, radius, radius), 270, 90);

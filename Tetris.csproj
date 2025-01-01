@@ -23,6 +23,7 @@
     <EmbeddedResource Include="Assets\sound\linging-1.mp3" />
     <EmbeddedResource Include="Assets\sound\fall_to_the_ground-1.mp3" />
     <EmbeddedResource Include="Assets\sound\game_over-1.mp3" />
+    <EmbeddedResource Include="Assets\music\Korobeiniki(Tetris Theme)-Kutay.mp3" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4798362 */
-  src: url('iconfont.woff2?t=1735536609856') format('woff2'),
-       url('iconfont.woff?t=1735536609856') format('woff'),
-       url('iconfont.ttf?t=1735536609856') format('truetype');
+  src: url('iconfont.woff2?t=1735764400522') format('woff2'),
+       url('iconfont.woff?t=1735764400522') format('woff'),
+       url('iconfont.ttf?t=1735764400522') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,14 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-lzl-tetris-4:before {
+  content: "\e618";
+}
+
+.icon-lzl-tetris-5:before {
+  content: "\e619";
 }
 
 .icon-lzl-tetris-1:before {

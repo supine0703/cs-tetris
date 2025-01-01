@@ -6,8 +6,8 @@
         private const int _EntryDelayFrames = 10;
         private bool GameOver { get; set; } = false;
 
-        private int _lineClearCount = 0;
-        private int _totalScore = 0;
+        private int LineClearCount { get; set; } = 0;
+        private int TotalScore { get; set; } = 0;
 
         private void InitializeRandomizer()
         {
@@ -26,10 +26,35 @@
 
         private void OnTopOut()
         {
-            _sounds["GameOver"]?.Play();
+            _sounds["GameOver"]?.RePlay();
             GameOver = true;
             _currentBlock = null;
             PauseButtonClick();
+        }
+
+        private void CaculateScore(int lineCount)
+        {
+            LineClearCount += lineCount;
+
+            switch (lineCount)
+            {
+                case 1:
+                    TotalScore += 100;
+                    break;
+                case 2:
+                    TotalScore += 300;
+                    break;
+                case 3:
+                    TotalScore += 500;
+                    break;
+                case 4:
+                    TotalScore += 800;
+                    break;
+                default:
+                    break;
+            }
+
+            RefushTotalScore();
         }
 
         private bool CheckTopOut()
@@ -50,7 +75,7 @@
                 return false;
             }
 
-            _sounds["Lock"]?.Play();
+            _sounds["Lock"]?.RePlay();
 
             foreach (var placeholder in _currentBlock.Placeholders)
             {
@@ -148,9 +173,10 @@
                 return new Rectangle(startX, startY + line * _blockSize, width, _blockSize);
             })];
 
-            _sounds["ClearLine"]?.Play();
+            _sounds["ClearLine"]?.RePlay();
 
             _currentBlock = null;
+            CaculateScore(fullLines.Count);
             StartCflAnimation(animationRects, () => DelayToDo(_EntryDelayFrames, () => 
             {
                 RandomBlock();
@@ -175,7 +201,7 @@
                 return false;
             }
 
-            _sounds["Hold"]?.Play();
+            _sounds["Hold"]?.RePlay();
             (_holdBlock, _currentBlock) = (new(_currentBlock.Type), _holdBlock);
             if (_currentBlock is null)
             {
@@ -199,7 +225,7 @@
                 _currentBlock.MoveLeftOrRight(-distance);
                 return false;
             }
-            _sounds["Move"]?.Play();
+            _sounds["Move"]?.RePlay();
             return true;
         }
 
@@ -234,7 +260,7 @@
                 _currentBlock.RightRotate();
                 return false;
             }
-            _sounds["Rotate"]?.Play();
+            _sounds["Rotate"]?.RePlay();
             return true;
         }
 
@@ -252,7 +278,7 @@
                 _currentBlock.LeftRotate();
                 return false;
             }
-            _sounds["Rotate"]?.Play();
+            _sounds["Rotate"]?.RePlay();
             return true;
         }
 
@@ -269,7 +295,7 @@
                 _currentBlock.TwiceRptate();
                 return false;
             }
-            _sounds["Rotate"]?.Play();
+            _sounds["Rotate"]?.RePlay();
             return true;
         }
 
@@ -290,7 +316,7 @@
 
                 if (!CheckCollision(block))
                 {
-                    _sounds["Fall"]?.Play();
+                    _sounds["Fall"]?.RePlay();
                     _currentBlock = block;
                     return true;
                 }

@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "510944",
+      "name": "music_fill",
+      "font_class": "lzl-tetris-4",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "510945",
+      "name": "music_forbid_fill",
+      "font_class": "lzl-tetris-5",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    },
+    {
       "icon_id": "980892",
       "name": "start",
       "font_class": "lzl-tetris-1",
