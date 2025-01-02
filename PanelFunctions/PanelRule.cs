@@ -88,12 +88,16 @@
             // Clear full lines
             if (!ClearFullLines())
             {
-                RandomBlock();
+                _currentBlock = null;
 
                 // Check if the game is over
                 if (CheckTopOut())
                 {
                     OnTopOut();
+                }
+                else
+                {
+                    DelayToDo(_EntryDelayFrames, () => RandomBlock());
                 }
             }
 
@@ -162,7 +166,7 @@
             // Define some variables to create the rectangle for the animation
             var width = _Columns * _blockSize;
             var startX = (ClientSize.Width - width) / 2;
-            var startY = (ClientSize.Height - (_Rows + (_PrimaryBlockSize - 1) * 2) * _blockSize) / 2;
+            var startY = (ClientSize.Height - (_Rows + (_PreviewBlockCount - 1) * 2) * _blockSize) / 2;
 
             List<Rectangle> animationRects = [.. fullLines.Select(line =>
             {

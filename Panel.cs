@@ -21,14 +21,14 @@ namespace Tetris
         }
 
         private const int _MarginRowNum = 5;
-        private const int _PrimaryBlockSize = (int)Block.E_Type.Count - 1;
+        private const int _PreviewBlockCount = (int)Block.E_Type.Count - 1;
         private const int _Rows = 20;
         private const int _Columns = 10;
 
         // Coordinate system: (0, 0) is the top-left corner, x is right, y is down,
         // the top of the playfield is y = -_MarginRowNum, the bottom is y = _Rows - 1
         private readonly List<CellInfo[]> _playfieldInfo = new(_Rows + _MarginRowNum);
-        private readonly Queue<Block> _nextBlocks = new(_PrimaryBlockSize);
+        private readonly Queue<Block> _nextBlocks = new(_PreviewBlockCount);
         private Block? _currentBlock;
         private Block? _holdBlock;
 
@@ -109,7 +109,7 @@ namespace Tetris
 
             // Reset the blocks
             _nextBlocks.Clear();
-            Enumerable.Range(0, _PrimaryBlockSize).ToList().ForEach(
+            Enumerable.Range(0, _PreviewBlockCount).ToList().ForEach(
                 _ => _nextBlocks.Enqueue(GetRandomBlock())
             );
 
@@ -123,6 +123,11 @@ namespace Tetris
             PauseButtonClick();
             PauseButtonClick();
             ResetAllAnimation();
+
+            // Reset the game info
+            LineClearCount = 0;
+            TotalScore = 0;
+            RefushTotalScore();
         }
 
         private void PanelLoad(object? sender, EventArgs e)

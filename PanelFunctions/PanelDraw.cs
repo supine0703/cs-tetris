@@ -48,9 +48,9 @@ namespace Tetris
                 startY -= _MarginRowNum * _blockSize;
 
                 // Draw inner cell lines
-                foreach (var row in Enumerable.Range(0, _Rows + _MarginRowNum))
+                foreach (var row in Enumerable.Range(0, _playfieldInfo.Count))
                 {
-                    foreach (var col in Enumerable.Range(0, _Columns))
+                    foreach (var col in Enumerable.Range(0, _playfieldInfo[row].Length))
                     {
                         int x = startX + col * _blockSize;
                         int y = startY + row * _blockSize;

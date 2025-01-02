@@ -52,6 +52,7 @@ namespace Tetris
             { "Lock",       "pop-2" },
             { "Fall",       "fall_to_the_ground-1" },
             { "ClearLine",  "linging-1" },
+            { "ReadyGo",    "ready_set_go-1" },
             { "GameOver",   "game_over" },
         };
 
