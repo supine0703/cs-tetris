@@ -2,7 +2,7 @@
 
 namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
         // === Key System ===
         private readonly HashSet<Keys> _pressedKeys = [];

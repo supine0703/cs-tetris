@@ -1,16 +1,18 @@
 ﻿using System.Diagnostics;
-using Timer = System.Timers.Timer;
+using Timer = System.Threading.Timer;
 
 namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
         // The timer is used to refresh each frame
-        private readonly Timer _timer = new(_TimerInterval); // In practice, it appears to be rounded up
+        private Timer? _timer = null; // In practice, it appears to be rounded up
         private const int _TimerInterval = 16;  // 62.5 FPS (frame per second)
         private List<long> _frameTimes = [];    // Store the timestamp of each frame
-        private double Fps { get; set; } = 0;
-        
+        private double Fps => _frameTimer.Fps;
+
+        private readonly FrameTimer _frameTimer = new();
+
         // The gravity for dropping
         private float _dropGravity = 0.01632f;              // 0.017G (cell per frame) (here 'G' refer to 60 frames per second)
         private float _softDropGravityIncrease = 0.67488f;  // 0.72G  (0.6912 * 62.5 = 40 cell per s)
@@ -22,28 +24,29 @@ namespace Tetris
         private int _autoEatTotalProgress = 500;    // 0.5s
         private bool AutoEatEnabled { get; set; } = true;
 
+        bool _isProcessing = false;
+
         private void InitializeTimer()
         {
-            _timer.Elapsed += (sender, e) =>
-            {
-                if (this.IsHandleCreated)
-                {
-                    this.Invoke(() => TimerTick());
-                }
-            };
-            _timer.AutoReset = true;
-            _timer.Enabled = true;
+            //_timer.Elapsed += (sender, e) =>
+            //{
+            //        this.Invoke(() => TimerTick());
+            //};
+            //_timer.AutoReset = true;
+            //_timer.Start();
+            _frameTimer.Tick += (sender, e) => TimerTick();
+            _frameTimer.Start();
         }
 
         private void DisposeTimer()
         {
-            _timer.Stop();
-            _timer.Dispose();
+            //_timer.Stop();
+            //_timer.Dispose();
         }
 
         private void TimerTick()
         {
-            UpdateFps();
+            RefushFpsLabel();
             RefushWatchLabel();
             DelayToDoNextFrame();
             if (!Pause)
@@ -91,25 +94,7 @@ namespace Tetris
             }
             AllAnimationNextFrame();
             this.Invalidate(); // Redraw the panel
-        }
-
-        private void UpdateFps()
-        {
-            // Record the timestamp of the current frame
-            long currentTime = Stopwatch.GetTimestamp();
-            _frameTimes.Add(currentTime);
-
-            // Delete old timestamps longer than 1 minute
-            long oneMinuteAgo = currentTime - Stopwatch.Frequency * 60;
-            _frameTimes.RemoveAll(time => time < oneMinuteAgo);
-
-            // Calculates and outputs the current average FPS
-            if (_frameTimes.Count > 1)
-            {
-                var duration = (_frameTimes.Last() - _frameTimes[0]) / (double)Stopwatch.Frequency;
-                Fps = _frameTimes.Count / duration;
-            }
-            RefushFpsLabel();
+            this.Update();
         }
 
         private void ResetAutoEatProceed() { _autoEatProgress = 0; }

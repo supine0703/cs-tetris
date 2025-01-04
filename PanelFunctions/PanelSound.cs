@@ -3,29 +3,31 @@ using NAudio.Wave;
 
 namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
         private class Sound
         {
             private readonly WaveStream waveStream;
             private readonly WaveOutEvent waveOut;
-            private bool _playing = false;
-            public bool Playing => _playing;
+            public bool Playing { get; private set; } = false;
+            public bool AutoReplay { get; set; } = false;
 
             public Sound(byte[] audioData)
             {
                 waveStream = new Mp3FileReader(new MemoryStream(audioData));
                 waveOut = new();
                 waveOut.Init(waveStream);
+                waveOut.PlaybackStopped += (sender, e) =>
+                {
+                    if (AutoReplay && Playing)
+                    {
+                        RePlay();
+                    }
+                };
             }
 
-            public Sound(byte[] audioData, Action action) : this(audioData)
-            {
-                waveOut.PlaybackStopped += (sender, e) => action();
-            }
-
-            public void Stop() { waveOut.Stop(); _playing = false; }
-            public void Play() { waveOut.Play(); _playing = true; }
+            public void Stop() { waveOut.Stop(); Playing = false; }
+            public void Play() { waveOut.Play(); Playing = true; }
 
             public void RePlay()
             {
@@ -39,7 +41,7 @@ namespace Tetris
 
             public void Dispose()
             {
-                waveOut.Stop();
+                Stop();
                 waveOut.Dispose();
                 waveStream.Dispose();
             }
@@ -88,13 +90,7 @@ namespace Tetris
                 ?? throw new Exception("Failed to load the sound resource: Korobeiniki(Tetris Theme)-Kutay.mp3");
             var bgmData = new byte[bgmStream.Length];
             bgmStream.Read(bgmData, 0, bgmData.Length);
-            _backgroundMusic = new(bgmData, () =>
-            {
-                if (_backgroundMusic is not null && _backgroundMusic.Playing)
-                {
-                    _backgroundMusic.RePlay();
-                }
-            });
+            _backgroundMusic = new(bgmData) { AutoReplay = true };
             _backgroundMusic?.RePlay();
         }
 

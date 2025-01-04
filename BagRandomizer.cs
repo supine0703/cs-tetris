@@ -1,13 +1,14 @@
 ﻿namespace Tetris
 {
-    public class BagRandomizer<T>
+    public class BagRandomizer<T>()
     {
         private readonly Random _random = new();
-        private List<T> _items;
-        private Queue<int> _bagIndexs;
+        private List<T> _items = [];
+        private Queue<int> _bagIndexs = [];
 
-        public BagRandomizer() : this([]) { }
-        public BagRandomizer(T[] items) {
+        public BagRandomizer(Array arr) : this(arr.Cast<T>().ToArray()) { }
+        public BagRandomizer(T[] items) : this()
+        {
             _items = new(items);
             _bagIndexs = new(_items.Count);
         }

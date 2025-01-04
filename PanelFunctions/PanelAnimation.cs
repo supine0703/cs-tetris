@@ -2,7 +2,7 @@
 
 namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
         private void AllAnimationNextFrame()
         {
@@ -225,9 +225,9 @@ namespace Tetris
 
         // === Hard Drop Animation ===
         private const int _HdTotalAnimationFrames = 15;
-        private List<(int frame, Rectangle rect, Block.E_Type belongsTo)> _hdAnimations = [];
+        private List<(int frame, Rectangle rect, Piece.E_Type belongsTo)> _hdAnimations = [];
 
-        private void StartHdAnimation(Rectangle[] rectangle, Block.E_Type belongsTo)
+        private void StartHdAnimation(Rectangle[] rectangle, Piece.E_Type belongsTo)
         {
             _hdAnimations.AddRange(rectangle.Select(r => (0, r, belongsTo)));
         }

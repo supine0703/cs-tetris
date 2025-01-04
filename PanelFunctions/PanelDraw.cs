@@ -2,7 +2,7 @@
 
 namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
         private int _blockSize; // Size of each block
 
@@ -96,7 +96,7 @@ namespace Tetris
             using (SolidBrush shadowBrush = new(Color.FromArgb(81, GetColor(_currentBlock.Type))))
             using (SolidBrush centerBrush = new(Color.FromArgb(81, ForegroundColor)))
             {
-                Block block = new(_currentBlock.Type, _currentBlock.Orientation, pos);
+                Piece block = new(_currentBlock.Type, _currentBlock.Orientation, pos);
                 DropBottom(block);
                 foreach (var placeholder in block.Placeholders)
                 {
@@ -152,7 +152,7 @@ namespace Tetris
             startY -= blockSize * 0.28f;
 
             // Draw the preview blocks
-            foreach (Block block in _nextBlocks)
+            foreach (var block in _nextBlocks)
             {
                 using Pen pen = new(ForegroundColor, 1);
                 using SolidBrush brush = new(GetColor(block.Type));
@@ -161,11 +161,11 @@ namespace Tetris
                 // Define the offset for the block center
                 float xDiff = 0;
                 float yDiff = 0;
-                if (block.Type == Block.E_Type.I)
+                if (block.Type == Piece.E_Type.I)
                 {
                     yDiff = blockSize * 0.5f;
                 }
-                else if (block.Type != Block.E_Type.O)
+                else if (block.Type != Piece.E_Type.O)
                 {
                     xDiff = blockSize * 0.5f;
                 }
@@ -222,11 +222,11 @@ namespace Tetris
                 // Define the offset for the block center
                 float xDiff = 0;
                 float yDiff = 0;
-                if (block.Type == Block.E_Type.I)
+                if (block.Type == Piece.E_Type.I)
                 {
                     yDiff = blockSize / 2;
                 }
-                else if (block.Type != Block.E_Type.O)
+                else if (block.Type != Piece.E_Type.O)
                 {
                     xDiff = blockSize / 2;
                 }
@@ -259,7 +259,7 @@ namespace Tetris
             var startY = (ClientSize.Height - _Rows * _blockSize + Padding.Top) * 0.5f + _blockSize * 14.9f;
             startX += _blockSize * 0.672f * 2.28f - radius;
 
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // Draw the background ring
             g.DrawEllipse(new Pen(Color.FromArgb(64, ForegroundColor), thickness), startX, startY, radius * 2, radius * 2);
@@ -279,27 +279,27 @@ namespace Tetris
             }
         }
 
-        private Color GetColor(Block.E_Type type) => UsingDark ? (type switch
+        private Color GetColor(Piece.E_Type type) => UsingDark ? (type switch
         {
             // Select the color based on the block type for light mode
-            Block.E_Type.I => Color.FromArgb(121, 184, 169), // 青绿
-            Block.E_Type.O => Color.FromArgb(212, 177, 72),  // 黄色
-            Block.E_Type.T => Color.FromArgb(172, 69, 165),  // 紫红色
-            Block.E_Type.J => Color.FromArgb(81, 120, 220),  // 蓝色
-            Block.E_Type.L => Color.FromArgb(220, 130, 70),  // 橙红色
-            Block.E_Type.S => Color.FromArgb(52, 139, 43),   // 深绿色
-            Block.E_Type.Z => Color.FromArgb(201, 70, 90),   // 红色
+            Piece.E_Type.I => Color.FromArgb(121, 184, 169), // 青绿
+            Piece.E_Type.O => Color.FromArgb(212, 177, 72),  // 黄色
+            Piece.E_Type.T => Color.FromArgb(172, 69, 165),  // 紫红色
+            Piece.E_Type.J => Color.FromArgb(81, 120, 220),  // 蓝色
+            Piece.E_Type.L => Color.FromArgb(220, 130, 70),  // 橙红色
+            Piece.E_Type.S => Color.FromArgb(52, 139, 43),   // 深绿色
+            Piece.E_Type.Z => Color.FromArgb(201, 70, 90),   // 红色
             _ => BackgroundColor,
         }) : (type switch
         {
             // Select the color based on the block type for light mode
-            Block.E_Type.I => Color.FromArgb(184, 231, 223), // 青绿
-            Block.E_Type.O => Color.FromArgb(240, 230, 140), // 黄色
-            Block.E_Type.T => Color.FromArgb(200, 150, 180), // 紫红色
-            Block.E_Type.J => Color.FromArgb(100, 150, 220), // 蓝色
-            Block.E_Type.L => Color.FromArgb(220, 130, 70),  // 橙红色
-            Block.E_Type.S => Color.FromArgb(130, 170, 110), // 绿松石色
-            Block.E_Type.Z => Color.FromArgb(230, 100, 100), // 红色
+            Piece.E_Type.I => Color.FromArgb(184, 231, 223), // 青绿
+            Piece.E_Type.O => Color.FromArgb(240, 230, 140), // 黄色
+            Piece.E_Type.T => Color.FromArgb(200, 150, 180), // 紫红色
+            Piece.E_Type.J => Color.FromArgb(100, 150, 220), // 蓝色
+            Piece.E_Type.L => Color.FromArgb(220, 130, 70),  // 橙红色
+            Piece.E_Type.S => Color.FromArgb(130, 170, 110), // 绿松石色
+            Piece.E_Type.Z => Color.FromArgb(230, 100, 100), // 红色
             _ => BackgroundColor,
         });
     }

@@ -2,7 +2,7 @@
 
 namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
         // Custom button class for the theme switch and unable to be selected
         private class CustonButton : Label

@@ -5,6 +5,10 @@
         public float X { get; set; } = x;
         public float Y { get; set; } = y;
 
+        public Position(float all) : this (all, all) { }
+
+        public readonly PointF ToPointF(float unitSize = 1.0f) => new(X * unitSize, Y * unitSize);
+
         public static Position operator *(Position a, float b) => new(a.X * b, a.Y * b);
 
         public static Position operator /(Position a, float b) => new(a.X / b, a.Y / b);
@@ -14,32 +18,28 @@
         public static Position operator -(Position a, Position b) => new(a.X - b.X, a.Y - b.Y);
     }
 
-    internal partial class Block(Block.E_Type type, Block.E_Orientation orientation, Position pos)
+    internal partial class Piece(Piece.E_Type type, Piece.E_Orientation orientation, Position pos)
     {
-        static public readonly Position DefaultPos = new(3, -3);
+        public static readonly Position InitialPos = new(3, -3);
 
-        public Block(E_Type type) : this(type, E_Orientation.Up, DefaultPos) { }
+        public static Position[] InitialPlaceholders(E_Type type) => PieceData.AllPlaceholders(type)[0];
 
-        public enum E_Type
-        {
-            I = 0, O, T, J, L, S, Z, Count,
-        }
+        public Piece(E_Type type) : this(type, default, InitialPos) { }
 
-        public enum E_Rotation
-        {
-            Right = 0, Left, Count,
-        }
+        public enum E_Type { I = 0, O, T, J, L, S, Z, }
+        public static int E_TypeCount => Enum.GetValues(typeof(E_Type)).Length;
 
-        public enum E_Orientation
-        {
-            Up = 0, Right, Down, Left, Count,
-        }
+        public enum E_Rotation {  Right = 0, Left, }
+        public static int E_RotationCount => Enum.GetValues(typeof(E_Rotation)).Length;
 
-        private BlockData _blockData = new(type, orientation);
+        public enum E_Orientation { Up = 0, Right, Down, Left, }
+        public static int E_OrientationCount => Enum.GetValues(typeof(E_Orientation)).Length;
+
+        private PieceData _blockData = new(type, orientation);
         private Position _pos = pos;
 
         public Position Pos => _pos;
-        public E_Type Type => _blockData.BlockType;
+        public E_Type Type => _blockData.PieceType;
         public E_Orientation Orientation => _blockData.Orientation;
         public Position RotateCenter => _blockData.RotateCenter;
         public Position[] Placeholders => _blockData.Placeholders;
@@ -48,21 +48,21 @@
         {
             if (rotation != E_Rotation.Left && rotation != E_Rotation.Right)
             {
-                throw new ArgumentException("Invalid direction");
+                throw new ArgumentOutOfRangeException(nameof(rotation));
             }
 
             var prevI = (int)_blockData.Orientation;
-            prevI += rotation == E_Rotation.Left ? 1 : (int)E_Orientation.Count - 1;
-            prevI %= (int)E_Orientation.Count;
-            return _blockData.AllWallKickTable[((int)rotation * (int)E_Orientation.Count) + prevI];
+            prevI += rotation == E_Rotation.Left ? 1 : E_OrientationCount - 1;
+            prevI %= E_OrientationCount;
+            return _blockData.AllWallKickTable[((int)rotation * E_OrientationCount) + prevI];
         }
         public Position[] GetCurrWallKickTable(E_Rotation rotation)
         {
             if (rotation != E_Rotation.Left && rotation != E_Rotation.Right)
             {
-                throw new ArgumentException("Invalid direction");
+                throw new ArgumentOutOfRangeException(nameof(rotation));
             }
-            return _blockData.AllWallKickTable[((int)rotation * (int)E_Orientation.Count) + (int)_blockData.Orientation];
+            return _blockData.AllWallKickTable[((int)rotation * E_OrientationCount) + (int)_blockData.Orientation];
         }
 
         public void TwiceRptate() { _blockData.TwiceRotate(); }

@@ -1,0 +1,89 @@
+﻿using System.Diagnostics;
+using Timer = System.Threading.Timer;
+
+namespace Tetris
+{
+    internal class FrameTimer : IDisposable
+    {
+        private const int _DefaultInterval = 16; // 62.5 FPS (frame per second)
+
+        private readonly List<(ulong frame, Action action)> _delayedActions = []; // Store the delayed actions
+        private readonly List<long> _frameTimeStamps = []; // Store the timestamp of each frame
+        private readonly Timer _timer;
+        private readonly int _interval;
+        private readonly SynchronizationContext _syncContext;
+        private bool _isTickInvoking = false;
+        private readonly object _lock = new(); // Lock object for thread safety
+        
+        public FrameTimer(int interval = _DefaultInterval)
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(interval, 1, nameof(interval));
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(interval, 1000, nameof(interval));
+            _interval = interval;
+            _syncContext = SynchronizationContext.Current
+                ?? throw new InvalidOperationException("SynchronizationContext is not set.");
+            _timer = new Timer(TimerCallback, null, Timeout.Infinite, Timeout.Infinite);
+        }
+
+        public event EventHandler? Tick;
+        public double Fps { get; private set; } = 0;
+
+        public void Start() => _timer.Change(0, _interval);
+        public void Stop() => _timer.Change(Timeout.Infinite, Timeout.Infinite);
+        public void Dispose() => _timer.Dispose();
+        public void DelayToDo(ulong frame, Action action)
+        {
+            lock (_lock) { _delayedActions.Add((frame, action)); }
+        }
+
+        private void TimerCallback(object? state)
+        {
+            if (_isTickInvoking) { return; }
+            _isTickInvoking = true;
+
+            // Update the FPS value
+            UpdateFps();
+            _syncContext.Post(_ =>
+            {
+                // Invoke the Tick event
+                Tick?.Invoke(this, EventArgs.Empty); 
+
+                // Execute the delayed actions
+                lock (_lock)
+                {
+                    for (int i = _delayedActions.Count - 1; i >= 0; i--)
+                    {
+                        var (frame, action) = _delayedActions[i];
+                        if (frame <= 1)
+                        {
+                            _syncContext.Post(_ => action.Invoke(), null);
+                            _delayedActions.RemoveAt(i);
+                            continue;
+                        }
+                        _delayedActions[i] = (frame - 1, action);
+                    }
+                }
+                _isTickInvoking = false;
+            }, null);
+        }
+
+        private void UpdateFps()
+        {
+            // Record the timestamp of the current frame
+            var currentTime = Stopwatch.GetTimestamp();
+            _frameTimeStamps.Add(currentTime);
+
+            // Delete old timestamps longer than 2 seconds
+            var ago = currentTime - Stopwatch.Frequency * 2;
+            _frameTimeStamps.RemoveAll(time => time < ago);
+
+            // Calculates and outputs the current average FPS
+            if (_frameTimeStamps.Count > 1)
+            {
+                var duration = (_frameTimeStamps.Last() - _frameTimeStamps.First()) / (double)Stopwatch.Frequency;
+                Fps = _frameTimeStamps.Count / duration;
+            }
+            else { Fps = 0; }
+        }
+    }
+}

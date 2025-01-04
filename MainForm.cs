@@ -11,7 +11,7 @@ namespace Tetris
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            this.Controls.Add(new Panel
+            this.Controls.Add(new GameControl()
             {
                 Dock = DockStyle.Fill, // Fill the entire form
             });

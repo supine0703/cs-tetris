@@ -1,8 +1,8 @@
 ﻿namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
-        private readonly BagRandomizer<Block.E_Type> _randomizer = new();
+        private readonly BagRandomizer<Piece.E_Type> _randomizer = new();
         private const int _EntryDelayFrames = 10;
         private bool GameOver { get; set; } = false;
 
@@ -12,11 +12,10 @@
         private void InitializeRandomizer()
         {
             // Initialize the randomizer
-            var arr = Enum.GetValues(typeof(Block.E_Type));
-            _randomizer.Reset([.. arr.Cast<Block.E_Type>().Where(e => e != Block.E_Type.Count)]);
+            _randomizer.Reset(Enum.GetValues(typeof(Piece.E_Type)).Cast<Piece.E_Type>().ToArray());
         }
 
-        private Block GetRandomBlock() => new(_randomizer.Next());
+        private Piece GetRandomBlock() => new(_randomizer.Next());
 
         private void RandomBlock()
         {
@@ -258,7 +257,7 @@
             }
 
             _currentBlock.LeftRotate();
-            if (CheckCollision() && !TestWallKick(Block.E_Rotation.Left))
+            if (CheckCollision() && !TestWallKick(Piece.E_Rotation.Left))
             {
                 // undo the rotation if there is a collision
                 _currentBlock.RightRotate();
@@ -276,7 +275,7 @@
             }
 
             _currentBlock.RightRotate();
-            if (CheckCollision() && !TestWallKick(Block.E_Rotation.Right))
+            if (CheckCollision() && !TestWallKick(Piece.E_Rotation.Right))
             {
                 // undo the rotation if there is a collision
                 _currentBlock.LeftRotate();
@@ -293,7 +292,7 @@
                 return false;
             }
             _currentBlock.TwiceRptate();
-            if (CheckCollision() && !TestWallKick(Block.E_Rotation.Left) && !TestWallKick(Block.E_Rotation.Right))
+            if (CheckCollision() && !TestWallKick(Piece.E_Rotation.Left) && !TestWallKick(Piece.E_Rotation.Right))
             {
                 // undo the rotation if there is a collision
                 _currentBlock.TwiceRptate();
@@ -303,7 +302,7 @@
             return true;
         }
 
-        private bool TestWallKick(Block.E_Rotation direction)
+        private bool TestWallKick(Piece.E_Rotation direction)
         {
             if (_currentBlock is null)
             {
@@ -316,7 +315,7 @@
                 // which is relative to the left-bottom corner, but panel's grid is relative to the left-top corner.
                 // So the X coordinate needs to be Added, and the Y coordinate needs to be subtracted from the block's position.
                 Position expectedPos = new(_currentBlock.Pos.X + diffPos.X, _currentBlock.Pos.Y - diffPos.Y);
-                Block block = new(_currentBlock.Type, _currentBlock.Orientation, expectedPos);
+                Piece block = new(_currentBlock.Type, _currentBlock.Orientation, expectedPos);
 
                 if (!CheckCollision(block))
                 {
@@ -329,7 +328,7 @@
         }
 
         private bool CheckCollision() => CheckCollision(_currentBlock);
-        private bool CheckCollision(Block? block)
+        private bool CheckCollision(Piece? block)
         {
             if (block is null)
             {
@@ -352,7 +351,7 @@
         }
 
         private float CanDrop() => CanDrop(_currentBlock);
-        private float CanDrop(Block? block)
+        private float CanDrop(Piece? block)
         {
             if (block is null)
             {
@@ -378,7 +377,7 @@
         }
 
         private void DropBottom() { DropBottom(_currentBlock); }
-        private void DropBottom(Block? block)
+        private void DropBottom(Piece? block)
         {
             if (block is null)
             {

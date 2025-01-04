@@ -1,36 +1,33 @@
 ﻿using System.Diagnostics;
 using System.Drawing.Text;
 using System.Reflection;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Tetris
 {
-    internal partial class Panel : UserControl
+    internal partial class TetrisPanel : UserControl
     {
         public enum E_CellState
         {
             Empty = 0, Clearing, Occupied,
         }
 
-        private struct CellInfo(E_CellState state, Block.E_Type belongsTo)
+        private struct CellInfo(E_CellState state, Piece.E_Type belongsTo = default)
         {
             public E_CellState State { get; set; } = state;
-            public Block.E_Type BelongsTo { get; set; } = belongsTo;
-
-            public CellInfo() : this(E_CellState.Empty, Block.E_Type.Count) { }
+            public Piece.E_Type BelongsTo { get; set; } = belongsTo;
         }
 
         private const int _MarginRowNum = 5;
-        private const int _PreviewBlockCount = (int)Block.E_Type.Count - 1;
+        private const int _PreviewBlockCount = 6;
         private const int _Rows = 20;
         private const int _Columns = 10;
 
         // Coordinate system: (0, 0) is the top-left corner, x is right, y is down,
         // the top of the playfield is y = -_MarginRowNum, the bottom is y = _Rows - 1
         private readonly List<CellInfo[]> _playfieldInfo = new(_Rows + _MarginRowNum);
-        private readonly Queue<Block> _nextBlocks = new(_PreviewBlockCount);
-        private Block? _currentBlock;
-        private Block? _holdBlock;
+        private readonly Queue<Piece> _nextBlocks = new(_PreviewBlockCount);
+        private Piece? _currentBlock;
+        private Piece? _holdBlock;
 
         private bool Pause { get; set; } = false;
 
@@ -45,7 +42,7 @@ namespace Tetris
         // The Stopwatch keeps track of the time the game is played
         private readonly Stopwatch _stopwatch = new();
 
-        public Panel()
+        public TetrisPanel()
         {
             // Initialize the font
             InitializeFontResources();
@@ -172,8 +169,8 @@ namespace Tetris
         {
             if (disposing)
             {
-                DisposeSounds();
                 DisposeTimer();
+                DisposeSounds();
             }
             base.Dispose(disposing);
         }

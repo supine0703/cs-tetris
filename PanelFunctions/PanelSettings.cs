@@ -2,7 +2,7 @@
 
 namespace Tetris
 {
-    internal partial class Panel
+    internal partial class TetrisPanel
     {
         private readonly CustonButton _themeButton = new();
         private readonly CustonButton _pauseButton = new();
