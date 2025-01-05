@@ -12,7 +12,7 @@ namespace Tetris
 
         public static Bitmap CreateBlockBitmapOf(E_Theme theme, int alpha, Piece.E_Type type, int cellSize, int borderThickness)
         {
-            (var color, var borderColor) = theme switch
+            var (color, borderColor) = theme switch
             {
                 E_Theme.Dark => (Piece.GetColors(type)[0], Color.White),
                 E_Theme.Light => (Piece.GetColors(type)[1], Color.Black),
@@ -21,15 +21,15 @@ namespace Tetris
             return CreateBlockBitmap(color, cellSize - borderThickness, borderColor, new Thickness(borderThickness));
         }
 
-        public static Bitmap CreatePieceBitmap(E_Theme theme, Piece.E_Type piece, int cellSize, int borderThickness)
-            => CreatePieceBitmap(theme, new Piece(piece), cellSize, borderThickness);
+        public static Bitmap CreatePieceBitmap(E_Theme theme, Piece.E_Type type, int cellSize, int borderThickness)
+            => CreatePieceBitmap(theme, new Piece(type), cellSize, borderThickness);
 
         public static Bitmap CreatePieceBitmap(E_Theme theme, Piece piece, int cellSize, int borderThickness)
         {
             var sideLength = cellSize * 4 + borderThickness; // (borderThickness / 2) * 2
             Bitmap bitmap = new(sideLength, sideLength);
 
-            (var color, var borderColor) = theme switch
+            var (color, borderColor) = theme switch
             {
                 E_Theme.Dark => (piece.Colors[0], Color.White),
                 E_Theme.Light => (piece.Colors[1], Color.Black),

@@ -49,62 +49,65 @@ namespace Tetris
                     g.FillRectangle(brush, outerSquareRect);
                 }
 
-                // Draw top highlights (bright colors fade away)
-                using (LinearGradientBrush brush = new(
-                    new(outerSquareCorners.TopLeft, new Size(sideLength, margin)),
-                    Color.White, ControlPaint.Light(color, 0.25f),
-                    LinearGradientMode.Vertical
-                ))
+                if (margin != 0)
                 {
-                    g.FillPolygon(brush, new Point[] {
-                        outerSquareCorners.TopLeft,
-                        outerSquareCorners.TopRight,
-                        innerSquareCorners.TopRight,
-                        innerSquareCorners.TopLeft,
-                    });
-                }
+                    // Draw top highlights (bright colors fade away)
+                    using (LinearGradientBrush brush = new(
+                        new(outerSquareCorners.TopLeft, new Size(sideLength, margin)),
+                        Color.White, ControlPaint.Light(color, 0.25f),
+                        LinearGradientMode.Vertical
+                    ))
+                    {
+                        g.FillPolygon(brush, new Point[] {
+                            outerSquareCorners.TopLeft,
+                            outerSquareCorners.TopRight,
+                            innerSquareCorners.TopRight,
+                            innerSquareCorners.TopLeft,
+                        });
+                    }
 
-                // Draw the lower side trapezoid shadow
-                using (SolidBrush brush = new(ControlPaint.Dark(color, 0.6f)))
-                {
-                    g.FillPolygon(brush, new Point[] {
-                        innerSquareCorners.BottomLeft,
-                        innerSquareCorners.BottomRight,
-                        outerSquareCorners.BottomRight,
-                        outerSquareCorners.BottomLeft,
-                    });
-                }
+                    // Draw the lower side trapezoid shadow
+                    using (SolidBrush brush = new(ControlPaint.Dark(color, 0.6f)))
+                    {
+                        g.FillPolygon(brush, new Point[] {
+                            innerSquareCorners.BottomLeft,
+                            innerSquareCorners.BottomRight,
+                            outerSquareCorners.BottomRight,
+                            outerSquareCorners.BottomLeft,
+                        });
+                    }
 
-                // Left gradient shadow
-                // (gradient from the lower vertex of the inner square to the upper vertex of the outer square)
-                using (LinearGradientBrush brush = new(
-                    new Point(innerSquareRect.Left + margin, outerSquareRect.Bottom),
-                    new Point(outerSquareRect.Left + margin, outerSquareRect.Top - margin),
-                    ControlPaint.Dark(color, 0.6f), ControlPaint.Light(color, 0.5f)
-                ))
-                {
-                    g.FillPolygon(brush, new Point[] {
-                        outerSquareCorners.TopLeft,
-                        innerSquareCorners.TopLeft,
-                        innerSquareCorners.BottomLeft,
-                        outerSquareCorners.BottomLeft,
-                    });
-                }
+                    // Left gradient shadow
+                    // (gradient from the lower vertex of the inner square to the upper vertex of the outer square)
+                    using (LinearGradientBrush brush = new(
+                        new Point(innerSquareRect.Left + margin, outerSquareRect.Bottom),
+                        new Point(outerSquareRect.Left + margin, outerSquareRect.Top - margin),
+                        ControlPaint.Dark(color, 0.6f), ControlPaint.Light(color, 0.5f)
+                    ))
+                    {
+                        g.FillPolygon(brush, new Point[] {
+                            outerSquareCorners.TopLeft,
+                            innerSquareCorners.TopLeft,
+                            innerSquareCorners.BottomLeft,
+                            outerSquareCorners.BottomLeft,
+                        });
+                    }
 
-                // Right-side gradient shadow
-                // (gradient from the lower vertex of the inner square to the upper vertex of the outer square)
-                using (LinearGradientBrush brush = new(
-                    new Point(innerSquareRect.Right + margin, outerSquareRect.Bottom),
-                    new Point(outerSquareRect.Right + margin, outerSquareRect.Top - margin),
-                    ControlPaint.Dark(color, 0.6f), ControlPaint.Light(color, 0.5f)
-                ))
-                {
-                    g.FillPolygon(brush, new Point[] {
-                        outerSquareCorners.TopRight,
-                        innerSquareCorners.TopRight,
-                        innerSquareCorners.BottomRight,
-                        outerSquareCorners.BottomRight,
-                    });
+                    // Right-side gradient shadow
+                    // (gradient from the lower vertex of the inner square to the upper vertex of the outer square)
+                    using (LinearGradientBrush brush = new(
+                        new Point(innerSquareRect.Right + margin, outerSquareRect.Bottom),
+                        new Point(outerSquareRect.Right + margin, outerSquareRect.Top - margin),
+                        ControlPaint.Dark(color, 0.6f), ControlPaint.Light(color, 0.5f)
+                    ))
+                    {
+                        g.FillPolygon(brush, new Point[] {
+                            outerSquareCorners.TopRight,
+                            innerSquareCorners.TopRight,
+                            innerSquareCorners.BottomRight,
+                            outerSquareCorners.BottomRight,
+                        });
+                    }
                 }
             }
             return bitmap;

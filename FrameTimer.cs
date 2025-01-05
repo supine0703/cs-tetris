@@ -7,14 +7,14 @@ namespace Tetris
     {
         private const int _DefaultInterval = 16; // 62.5 FPS (frame per second)
 
-        private readonly List<(ulong frame, Action action)> _delayedActions = []; // Store the delayed actions
+        private List<(ulong frame, Action action)> _delayedActions = []; // Store the delayed actions
         private readonly List<long> _frameTimeStamps = []; // Store the timestamp of each frame
         private readonly Timer _timer;
         private readonly int _interval;
         private readonly SynchronizationContext _syncContext;
         private bool _isTickInvoking = false;
         private readonly object _lock = new(); // Lock object for thread safety
-        
+
         public FrameTimer(int interval = _DefaultInterval)
         {
             ArgumentOutOfRangeException.ThrowIfLessThan(interval, 1, nameof(interval));
@@ -46,22 +46,20 @@ namespace Tetris
             _syncContext.Post(_ =>
             {
                 // Invoke the Tick event
-                Tick?.Invoke(this, EventArgs.Empty); 
+                Tick?.Invoke(this, EventArgs.Empty);
 
                 // Execute the delayed actions
                 lock (_lock)
                 {
-                    for (int i = _delayedActions.Count - 1; i >= 0; i--)
+                    _delayedActions = _delayedActions.Select(to => (frame: to.frame - 1, to.action)).Where(toDo =>
                     {
-                        var (frame, action) = _delayedActions[i];
-                        if (frame <= 1)
+                        if (toDo.frame <= 1)
                         {
-                            _syncContext.Post(_ => action.Invoke(), null);
-                            _delayedActions.RemoveAt(i);
-                            continue;
+                            _syncContext.Post(_ => toDo.action.Invoke(), null);
+                            return false;
                         }
-                        _delayedActions[i] = (frame - 1, action);
-                    }
+                        return true;
+                    }).ToList();
                 }
                 _isTickInvoking = false;
             }, null);

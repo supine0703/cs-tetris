@@ -17,13 +17,7 @@ namespace Tetris
                 waveStream = new Mp3FileReader(new MemoryStream(audioData));
                 waveOut = new();
                 waveOut.Init(waveStream);
-                waveOut.PlaybackStopped += (sender, e) =>
-                {
-                    if (AutoReplay && Playing)
-                    {
-                        RePlay();
-                    }
-                };
+                waveOut.PlaybackStopped += (sender, e) => { if (AutoReplay && Playing) { RePlay(); } };
             }
 
             public void Stop() { waveOut.Stop(); Playing = false; }
@@ -31,10 +25,7 @@ namespace Tetris
 
             public void RePlay()
             {
-                if (waveOut.PlaybackState == PlaybackState.Playing)
-                {
-                    waveOut.Stop();
-                }
+                if (waveOut.PlaybackState == PlaybackState.Playing) { waveOut.Stop(); }
                 waveStream.Position = 0;
                 Play();
             }
@@ -59,6 +50,7 @@ namespace Tetris
         };
 
         private readonly Dictionary<string, Sound?> _sounds = [];
+        private Sound? _silentAudio; // For keeping the audio device alive
         private Sound? _backgroundMusic;
         private bool BgmMute { get; set; } = true;
 
@@ -69,26 +61,34 @@ namespace Tetris
 
             foreach (var (key, value) in _soundResources)
             {
-                if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value)) { continue; }
-                // Find the sound resource in the resources
-                var name = resourceNames.FirstOrDefault(n => n.Contains(value))
-                    ?? throw new Exception($"Cannot find the {value} sound resource");
-                using var stream = assembly.GetManifestResourceStream(name)
-                    ?? throw new Exception($"Failed to load the sound resource: {name}");
-                var data = new byte[stream.Length];
-                stream.Read(data, 0, data.Length);
-                _sounds[key] = new(data);
+                if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value))
+                {
+                    _sounds[key] = LoadSoundResource(assembly, resourceNames, value);
+                }
             }
 
-            // Background music
-            var bgmName = resourceNames.FirstOrDefault(n => n.Contains("Korobeiniki(Tetris Theme)-Kutay.mp3"))
-                ?? throw new Exception("Cannot find the resource: Korobeiniki(Tetris Theme)-Kutay.mp3");
-            using var bgmStream = assembly.GetManifestResourceStream(bgmName)
-                ?? throw new Exception("Failed to load the sound resource: Korobeiniki(Tetris Theme)-Kutay.mp3");
-            var bgmData = new byte[bgmStream.Length];
-            bgmStream.Read(bgmData, 0, bgmData.Length);
-            _backgroundMusic = new(bgmData) { AutoReplay = true };
-            if (!BgmMute) { _backgroundMusic.Play(); }
+            _backgroundMusic = LoadSoundResource(assembly, resourceNames, "Korobeiniki(Tetris Theme)-Kutay.mp3");
+            _backgroundMusic.AutoReplay = true;
+            BgmMute = !BgmMute;
+
+            _silentAudio = LoadSoundResource(assembly, resourceNames, "silent_audio.mp3");
+            _silentAudio.AutoReplay = true;
+            _silentAudio.Play();
+
+            // Load sound resources
+            Sound LoadSoundResource(Assembly asm, string[] resNames, string resName)
+            {
+                var name = resNames.FirstOrDefault(n => n.Contains(resName))
+                    ?? throw new Exception($"Cannot find the resource: {resName}");
+
+                using var stream = asm.GetManifestResourceStream(name)
+                    ?? throw new Exception($"Failed to load the sound resource: {name}");
+
+                var data = new byte[stream.Length];
+                stream.Read(data, 0, data.Length);
+
+                return new Sound(data);
+            }
         }
 
         private void BgmMuteSwitch()
@@ -102,6 +102,7 @@ namespace Tetris
         {
             _sounds.Values.ToList().ForEach(sound => sound?.Dispose());
             _sounds.Clear();
+            _silentAudio?.Dispose();
             _backgroundMusic?.Dispose();
         }
     }

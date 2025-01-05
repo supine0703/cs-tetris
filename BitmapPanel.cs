@@ -6,7 +6,7 @@
 
         public BitmapPanel()
         {
-            DoubleBuffered = true;
+            this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
             this.BackColor = Color.Transparent;
             this.Enabled = false;

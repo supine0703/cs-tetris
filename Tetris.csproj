@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>0.2.1.1</AssemblyVersion>
+    <AssemblyVersion>0.2.1.2</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +21,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Assets\iconfont\iconfont.ttf" />
     <EmbeddedResource Include="Assets\font\JetBrainsMono-Regular.ttf" />
+    <EmbeddedResource Include="Assets\sound\silent_audio.mp3" />
     <EmbeddedResource Include="Assets\sound\tap-1.mp3" />
     <EmbeddedResource Include="Assets\sound\pop-1.mp3" />
     <EmbeddedResource Include="Assets\sound\pop-2.mp3" />
@@ -59,6 +60,10 @@
       <Link>GameAnimation.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
+    <Compile Update="GameElements.cs">
+      <Link>GameElements.cs</Link>
+      <DependentUpon>GameControl.cs</DependentUpon>
+    </Compile>
     <Compile Update="GameKeySystem.cs">
       <Link>GameKeySystem.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
@@ -73,6 +78,10 @@
     </Compile>
     <Compile Update="GameRule.cs">
       <Link>GameRule.cs</Link>
+      <DependentUpon>GameControl.cs</DependentUpon>
+    </Compile>
+    <Compile Update="GameSetting.cs">
+      <Link>GameSetting.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
     <Compile Update="GameSound.cs">

@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Linq;
 
 namespace Tetris
 {
@@ -32,7 +31,19 @@ namespace Tetris
 
 
         // Define some variable or attribute for the game control
-        private E_GameState GameState { get; set; } = default;
+        private delegate void GameStateChangedEventHandler(E_GameState state);
+        private event GameStateChangedEventHandler? GameStateChanged;
+        private E_GameState GameState
+        {
+            get => _gameState;
+            set
+            {
+                if (value == _gameState) { return; }
+                _gameState = value;
+                GameStateChanged?.Invoke(_gameState);
+            }
+        }
+        private E_GameState _gameState;
         private readonly List<CellInfo[]> _playfieldInfo = new(_MatrixRows + _BufferZoneRows);
         private readonly Queue<Piece> _previewQueue = new(_PreviewPieceCount);
         private readonly Queue<Piece> _holdQueue = new(_HoldPieceCount + 1);
@@ -65,21 +76,26 @@ namespace Tetris
 
             // Reset the playfield info
             _playfieldInfo.Clear();
-            Enumerable.Range(0, _playfieldInfo.Capacity).ToList().ForEach(
-                _ => _playfieldInfo.Add(new CellInfo[_MatrixColumns])
-            );
+            foreach (var _ in Enumerable.Range(0, _playfieldInfo.Capacity))
+            {
+                _playfieldInfo.Add(new CellInfo[_MatrixColumns]);
+            }
 
             // Reset the pieces
             _previewQueue.Clear();
-            Enumerable.Range(0, _PreviewPieceCount).ToList().ForEach(
-                _ => _previewQueue.Enqueue(GetRandomPiece())
-            );
+            foreach (var _ in Enumerable.Range(0, _PreviewPieceCount))
+            {
+                _previewQueue.Enqueue(GetRandomPiece());
+            }
             NextPiece();
 
             // Reset the hold block
             _holdQueue.Clear();
+            GameState = E_GameState.Playing; // TODO ...
 
             //GameOver = false;
+
+            this.Invalidate();
 
             //// Update pause message and animation
             //_stopwatch.Restart();
@@ -113,6 +129,7 @@ namespace Tetris
         {
             _activePiece = _previewQueue.Dequeue();
             _previewQueue.Enqueue(GetRandomPiece());
+            this.Invalidate(PreviewQueueBoxRect);
         }
 
         private bool LockPiece()
@@ -129,6 +146,7 @@ namespace Tetris
                 var col = (int)Math.Ceiling(pos.X + _activePiece.Pos.X);
                 _playfieldInfo[row][col].State = E_CellState.Occupied;
                 _playfieldInfo[row][col].BelongsTo = _activePiece.Type;
+                this.Invalidate(new Rectangle(ColToPosX(col), RowToPosY(row), CellSize, CellSize));
             }
 
             // Clear full lines
@@ -152,7 +170,7 @@ namespace Tetris
             if (_activePiece is null) { return false; }
 
             // Get the top placeholders of the current piece
-            List<Position> placeholders = _activePiece.Placeholders.ToList()
+            List<Position> placeholders = _activePiece.Placeholders
                 .GroupBy(pos => pos.X)
                 .Select(g => g.OrderBy(pos => pos.Y).First())
                 .ToList();
@@ -196,25 +214,20 @@ namespace Tetris
 
             if (fullLineRows.Count == 0) { return false; }
 
-            // Define some variables to create the rectangle for the animation
-            var width = _MatrixColumns * CellSize;
-            var startX = PlayfieldLocation.X;
-            var startY = PlayfieldLocation.Y - (_PreviewPieceCount - 1) * CellSize; // TODO ?
+            _activePiece = null;
+            _sounds["ClearLine"]?.RePlay();
 
-            List<Rectangle> animationRects = [.. fullLineRows.Select(row =>
+            //CaculateScore(fullLineRows.Count);
+
+            StartCflAnimation(fullLineRows.Select(row =>
             {
                 foreach (var i in Enumerable.Range(0, _playfieldInfo[row].Length))
                 {
                     _playfieldInfo[row][i].State = E_CellState.Clearing;
                 }
-                return new Rectangle(startX, YiToPosY(row - _PreviewPieceCount), width, CellSize);
-            })];
-
-            _sounds["ClearLine"]?.RePlay();
-
-            _activePiece = null;
-            //CaculateScore(fullLineRows.Count);
-            StartCflAnimation(animationRects, () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
+                return new Point(PlayfieldLocation.X, YiToPosY(row - _BufferZoneRows));
+            }).ToArray());
+            _frameTimer.DelayToDo(_CflTotalAnimationFrames, () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
             {
                 NextPiece();
                 fullLineRows.ForEach(line =>
@@ -222,6 +235,7 @@ namespace Tetris
                     _playfieldInfo.RemoveAt(line);
                     _playfieldInfo.Insert(0, new CellInfo[_MatrixColumns]);
                 });
+                this.Invalidate(new Rectangle(PlayfieldLocation.X, 0, _MatrixColumns * CellSize, this.ClientSize.Height));
                 // Check if the game is over
                 if (CheckTopOut())
                 {
@@ -241,6 +255,7 @@ namespace Tetris
             if (_holdQueue.Count <= _HoldPieceCount) { NextPiece(); }
             else { _activePiece = _holdQueue.Dequeue(); }
 
+            this.Invalidate(HoldQueueBoxRect);
             return true;
         }
 

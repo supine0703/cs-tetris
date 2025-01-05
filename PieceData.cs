@@ -20,7 +20,7 @@
 
             public void LeftRotate()
             {
-                orientation = (E_Orientation)(((int)orientation + (E_OrientationCount - 1) % E_OrientationCount));
+                orientation = (E_Orientation)(((int)orientation + E_OrientationCount - 1) % E_OrientationCount);
             }
 
             public readonly Position RotateCenter => type switch

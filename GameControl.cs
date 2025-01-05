@@ -7,44 +7,46 @@ namespace Tetris
 {
     internal partial class GameControl : UserControl
     {
+        private new Padding Padding { get; set; }
         private readonly FrameTimer _frameTimer = new();
-        private readonly BitmapManager _bitmapManager = new();
+        private readonly BitmapManager _bitmapManager = new() { PieceSizeScaling = _PreloadPieceSizeScaling };
+        private int BorderThickness => _bitmapManager.BlockBorderThickness;
         private int CellSize { get => _bitmapManager.CellSize; set => _bitmapManager.CellSize = value; }
         private int ThemeIndex { get; set; }
 
         private Label _label = new();
 
+        private List<(int priority, EventHandler handler)>? FrameTickLoadList { get; set; } = [];
+
         public GameControl()
         {
+            InitializeFontResources();
             InitializeComponent();
-            InitializeGamePaint();
             InitializeSounds();
+            InitializeGamePaint();
             InitalizeGameAnimation();
-            RestartGame();
-            UpdateFps();
+            InitializeKeySystem();
 
-            _bitmapManager.ThemeChanged += (sender, theme) => ThemeIndex = theme switch
-            {
-                BitmapManager.E_Theme.Dark => 0,
-                BitmapManager.E_Theme.Light => 1,
-                _ => throw new NotImplementedException(),
-            };
-            _bitmapManager.Theme = BitmapManager.E_Theme.Dark;
-            _frameTimer.Start();
+            this.Load += GameControlLoad;
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
-            CellSize = Math.Min(
+            CellSize = Math.Max(1, Math.Min(
                 this.ClientSize.Width * 2 / 3 / (_MatrixColumns + 2),
-                this.ClientSize.Height / (_MatrixRows + 2)
-            );
+                this.ClientSize.Height / (_MatrixRows + 3)
+            ));
             this.Padding = new(CellSize);
             PlayfieldLocation = new(
                 (this.ClientSize.Width - _MatrixColumns * CellSize) / 2,
                 (this.ClientSize.Height - _MatrixRows * CellSize) / 2
             );
+            PieceBoundingBoxSize = new(
+                4 * CellSize + _bitmapManager.PieceBorderThickness,
+                4 * CellSize + _bitmapManager.PieceBorderThickness
+            );
+            ResizeSettings();
             this.Invalidate();
         }
 
@@ -52,30 +54,22 @@ namespace Tetris
         {
             base.OnPaint(e);
 
+            DrawBackground(e);
+
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
-
+            
             CalculateRedrawRegion(e.ClipRectangle);
-            DrawBackground(e);
+
             DrawPlayfield(e);
+            DrawPreviewQueue(e);
+            DrawHoldQueue(e);
 
-            //Debug.WriteLine($"{e.ClipRectangle}");
-            //g.DrawImage(_backgrounds[(int)_bitmapManager.Theme], this.ClientRectangle);
-            //g.DrawImage(_backgrounds[(int)_bitmapManager.Theme], e.ClipRectangle, e.ClipRectangle, GraphicsUnit.Pixel);
+            //e.Graphics.CompositingQuality = CompositingQuality.HighQuality; // Unnecessary and resource-intensive
 
-            //int sideLength = 200;
-            //int xOffset = 10;
-            //int yOffset = 10;
-            //int spacing = sideLength + 40; // 增加一些间距
+            DrawActivePiece(e);
 
-            //Enum.GetValues(typeof(Piece.E_Type)).Cast<Piece.E_Type>().ToList().ForEach(type =>
-            //{
-            //    using var squareBitmap = BitmapManager.FromAlphaBitmap(127, _bitmapManager.GetPieceBitmap(type));
-            //    int x = xOffset + ((int)type % 3) * spacing;
-            //    int y = yOffset + ((int)type / 3) * spacing;
-            //    g.DrawImage(squareBitmap, x, y);
-            //});
+            DrawAllAnimationFrame(e.Graphics);
         }
 
         protected override void Dispose(bool disposing)
@@ -95,17 +89,47 @@ namespace Tetris
 
             this.SuspendLayout();
             this.Controls.Add(_label);
-
+            InitializeSettings();
             this.ResumeLayout(false);
+        }
 
-            this.KeyDown += (sender, e) => KeyDownHandler(e);
-            this.KeyUp += (sender, e) => KeyUpHandler(e);
+        private void GameControlLoad(object? sender, EventArgs e)
+        {
+            if (this.ParentForm is not null)
+            {
+                this.ParentForm.Deactivate += (sender, e) => PauseButtonClick();
+            }
+
+            if (FrameTickLoadList is not null)
+            {
+                foreach (var (_, handler) in FrameTickLoadList.OrderByDescending(t => t.priority))
+                {
+                    _frameTimer.Tick += handler;
+                }
+                FrameTickLoadList.Clear();
+                FrameTickLoadList = null;
+            }
+
+            _bitmapManager.ThemeChanged += (sender, theme) => ThemeIndex = theme switch
+            {
+                BitmapManager.E_Theme.Dark => 0,
+                BitmapManager.E_Theme.Light => 1,
+                _ => throw new NotImplementedException(),
+            };
+            _bitmapManager.ThemeChanged += (sender, theme) => this.Refresh();
+            _bitmapManager.Theme = BitmapManager.E_Theme.Dark;
+            _frameTimer.Start();
+
+            UpdateFps();
+            RestartGame();
+            BgmMuteSwitch();
         }
 
         private void UpdateFps()
         {
             _frameTimer.DelayToDo(15, UpdateFps);
             _label.Text = $"FPS: {_frameTimer.Fps:F2}";
+            _label.Update();
         }
     }
 }
