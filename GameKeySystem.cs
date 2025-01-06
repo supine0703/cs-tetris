@@ -30,6 +30,25 @@ namespace Tetris
         // === Key for hold ===
         private readonly HashSet<Keys> _canHoldKeys = [Keys.Space];
 
+        // === Check Key ... ===
+        private bool HardDropPressed => _canHardDropKeys.Any(key => IsPressed(key));
+        private bool SoftDropPressed => _canSoftDropKeys.Any(key => IsPressed(key));
+        private bool MoveLeftPressed => _canMoveLeftKeys.Any(key => IsPressed(key));
+        private bool MoveRightPressed => _canMoveRightKeys.Any(key => IsPressed(key));
+        private bool RotateLeftPressed => _canRotateLeftKeys.Any(key => IsPressed(key));
+        private bool RotateRightPressed => _canRotateRightKeys.Any(key => IsPressed(key));
+        private bool Rotate180Pressed => _canRotate180Keys.Any(key => IsPressed(key));
+        private bool HoldPressed => _canHoldKeys.Any(key => IsPressed(key));
+        private bool IsPressed(Keys key) => _pressedKeys.Contains(key);
+        private bool IsHardDropKey(Keys key) => _canHardDropKeys.Contains(key);
+        private bool IsSoftDropKey(Keys key) => _canSoftDropKeys.Contains(key);
+        private bool IsMoveLeftKey(Keys key) => _canMoveLeftKeys.Contains(key);
+        private bool IsMoveRightKey(Keys key) => _canMoveRightKeys.Contains(key);
+        private bool IsRotateLeftKey(Keys key) => _canRotateLeftKeys.Contains(key);
+        private bool IsRotateRightKey(Keys key) => _canRotateRightKeys.Contains(key);
+        private bool IsRotate180Key(Keys key) => _canRotate180Keys.Contains(key);
+        private bool IsHoldKey(Keys key) => _canHoldKeys.Contains(key);
+
         // Allow the arrow keys to be used in the game (some key default behavior is disabled)
         protected override bool ProcessDialogKey(Keys key)
         {
@@ -58,7 +77,7 @@ namespace Tetris
                 return;
             }
 
-            if (!_pressedKeys.Contains(e.KeyCode))
+            if (!IsPressed(e.KeyCode))
             {
                 var changed = false;
                 if (e.KeyCode == Keys.P || e.KeyCode == Keys.Escape)
@@ -82,31 +101,31 @@ namespace Tetris
                 {
                 }
                 // Rotate
-                else if (_canRotateLeftKeys.Contains(e.KeyCode))
+                else if (IsRotateLeftKey(e.KeyCode))
                 {
-                    changed = TryLeftRotate();
+                    changed = TryPieceRotateLeft();
                 }
-                else if (_canRotateRightKeys.Contains(e.KeyCode))
+                else if (IsRotateRightKey(e.KeyCode))
                 {
-                    changed = TryRightRotate();
+                    changed = TryPieceRotateRight();
                 }
-                else if (_canRotate180Keys.Contains(e.KeyCode))
+                else if (IsRotate180Key(e.KeyCode))
                 {
-                    changed = TryTwiceRotate();
+                    changed = TryPieceRotateTwice();
                 }
                 // Hard drop
-                else if (_canHardDropKeys.Contains(e.KeyCode))
+                else if (IsHardDropKey(e.KeyCode))
                 {
-                    changed = HardDropPiece();
+                    changed = TryPieceHardDrop();
                 }
                 // Soft drop
-                else if (_canSoftDropKeys.Contains(e.KeyCode))
+                else if (IsSoftDropKey(e.KeyCode))
                 {
                 }
                 // Hold
-                else if (_canHoldKeys.Contains(e.KeyCode))
+                else if (IsHoldKey(e.KeyCode))
                 {
-                    changed = TryHoldBlock();
+                    changed = TryPieceHold();
                 }
                 else if (e.KeyCode == Keys.O)
                 {
@@ -129,7 +148,7 @@ namespace Tetris
             _pressedKeys.Remove(e.KeyCode);
 
             // Stop the multi move timer
-            if (_pressedKeys.All(key => !_canMoveLeftKeys.Contains(key) && !_canMoveRightKeys.Contains(key)))
+            if (_pressedKeys.All(key => !IsMoveLeftKey(key) && !IsMoveRightKey(key)))
             {
             }
         }
@@ -142,17 +161,15 @@ namespace Tetris
                 return;
             }
 
-            var move = _canMoveLeftKeys.Any(key => _pressedKeys.Contains(key)) ? -1 : 0;
-            move += _canMoveRightKeys.Any(key => _pressedKeys.Contains(key)) ? 1 : 0;
+            var move = (MoveLeftPressed ? -1 : 0) + (MoveRightPressed ? 1 : 0);
 
             if (move == 0) { autoShiftCounter = 0; }
-            else if (++autoShiftCounter == 1) { TryMoveBlockLeftOrRight(move); }
+            else if (++autoShiftCounter == 1) { TryPieceMoveLeftOrRight(move); }
             else if (autoShiftCounter == _AutoShiftDelay + _AutoShiftPeriod)
             {
-                TryMoveBlockLeftOrRight(move);
+                TryPieceMoveLeftOrRight(move);
                 autoShiftCounter = _AutoShiftDelay;
             }
-
         }
     }
 }

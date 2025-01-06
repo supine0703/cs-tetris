@@ -8,17 +8,17 @@
             public readonly E_Orientation Orientation => orientation;
             public readonly Position[] Placeholders => AllPlaceholders(type)[(int)orientation];
 
-            public void TwiceRotate()
+            public void RotateTwice()
             {
                 orientation = (E_Orientation)(((int)orientation + 2) % E_OrientationCount);
             }
 
-            public void RightRotate()
+            public void RotateRight()
             {
                 orientation = (E_Orientation)(((int)orientation + 1) % E_OrientationCount);
             }
 
-            public void LeftRotate()
+            public void RotateLeft()
             {
                 orientation = (E_Orientation)(((int)orientation + E_OrientationCount - 1) % E_OrientationCount);
             }

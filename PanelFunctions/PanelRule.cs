@@ -256,11 +256,11 @@
                 return false;
             }
 
-            _currentBlock.LeftRotate();
+            _currentBlock.RotateLeft();
             if (CheckCollision() && !TestWallKick(Piece.E_Rotation.Left))
             {
                 // undo the rotation if there is a collision
-                _currentBlock.RightRotate();
+                _currentBlock.RotateRight();
                 return false;
             }
             _sounds["Rotate"]?.RePlay();
@@ -274,11 +274,11 @@
                 return false;
             }
 
-            _currentBlock.RightRotate();
+            _currentBlock.RotateRight();
             if (CheckCollision() && !TestWallKick(Piece.E_Rotation.Right))
             {
                 // undo the rotation if there is a collision
-                _currentBlock.LeftRotate();
+                _currentBlock.RotateLeft();
                 return false;
             }
             _sounds["Rotate"]?.RePlay();
@@ -291,11 +291,11 @@
             {
                 return false;
             }
-            _currentBlock.TwiceRptate();
+            _currentBlock.RotateTwice();
             if (CheckCollision() && !TestWallKick(Piece.E_Rotation.Left) && !TestWallKick(Piece.E_Rotation.Right))
             {
                 // undo the rotation if there is a collision
-                _currentBlock.TwiceRptate();
+                _currentBlock.RotateTwice();
                 return false;
             }
             _sounds["Rotate"]?.RePlay();

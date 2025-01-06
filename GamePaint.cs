@@ -49,8 +49,8 @@ namespace Tetris
         private Rectangle GetPieceBoundingBox(Piece piece)
         {
             return new(
-                XiToPosX((int)piece.Pos.X) - BlockBorderDiff - BorderThickness,
-                YiToPosY((int)piece.Pos.Y) - BlockBorderDiff - BorderThickness,
+                XiToPosX(piece.Pos.X) - BlockBorderDiff - BorderThickness,
+                YiToPosY(piece.Pos.Y) - BlockBorderDiff - BorderThickness,
                 PieceBoundingBoxSize.Width + BorderThickness * 2,
                 PieceBoundingBoxSize.Height + BorderThickness * 2
             );
@@ -175,20 +175,20 @@ namespace Tetris
             using var bitmap = BitmapManager.CreatePieceBitmap(
                 _bitmapManager.Theme, _pieceStateBcakup, CellSize, _bitmapManager.PieceBorderThickness
             );
-            using (var sbm = BitmapManager.FromAlphaBitmap(64, bitmap))
+            using (var shadowBitmap = BitmapManager.FromAlphaBitmap(64, bitmap))
             {
                 g.DrawImage(
-                    sbm,
-                    XiToPosX((int)_shadowStateBcakup!.Pos.X) - BlockBorderDiff,
-                    YiToPosY((int)_shadowStateBcakup!.Pos.Y) - BlockBorderDiff
+                    shadowBitmap,
+                    XiToPosX(_shadowStateBcakup!.Pos.X) - BlockBorderDiff,
+                    YiToPosY(_shadowStateBcakup!.Pos.Y) - BlockBorderDiff
                 );
             }
 
             // Draw the active piece
             g.DrawImage(
                 bitmap,
-                XiToPosX((int)_pieceStateBcakup.Pos.X) - BlockBorderDiff,
-                YiToPosY((int)_pieceStateBcakup.Pos.Y) - BlockBorderDiff
+                XiToPosX(_pieceStateBcakup.Pos.X) - BlockBorderDiff,
+                YiToPosY(_pieceStateBcakup.Pos.Y) - BlockBorderDiff
             );
         }
 

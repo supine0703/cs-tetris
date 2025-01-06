@@ -39,7 +39,7 @@ namespace Tetris
         //private const bool CLF_ANIMATION_ONLY_RENDER_SLEF = false; // Full rendering may not reach 60FPS
         //private const bool CLF_ANIMATION_DRAW_CORNORS = true; // Corners seems unnecessary
         private const string _CflAnimationKey = "Clear-Full-Line(s)-Animation";
-        private const int _CflTotalAnimationFrames = 27; // Line Clear Delay
+        private const int _CflTotalAnimationFrames = 24; // Line Clear Delay
         private const float _CflHorizontalExtensionRatio = 0.391f;
         private readonly Color[] _cflCenterColors = [Color.FromArgb(252, 249, 176), Color.FromArgb(171, 32, 164)];
         private List<(int frame, Point location)> _cflAnimations = [];
@@ -88,10 +88,10 @@ namespace Tetris
                 {
                     var (deltaX, deltaY, outer) = GetCflAnimationPosDelta(CellSize, cflA.frame);
                     Point pos = new(cflA.location.X - deltaX, cflA.location.Y - deltaY);
-                    this.Invalidate(new Rectangle(pos, outer));
+                    FrameRefresh(new Rectangle(pos, outer));
                     (deltaX, deltaY, outer) = GetCflAnimationPosDelta(CellSize, cflA.frame - 1);
                     pos = new(cflA.location.X - deltaX, cflA.location.Y - deltaY);
-                    this.Invalidate(new Rectangle(pos, outer));
+                    FrameRefresh(new Rectangle(pos, outer));
                 }
                 return (frame: cflA.frame + 1, cflA.location);
             }).Where(cflA => cflA.frame < _CflTotalAnimationFrames).ToList();
@@ -248,7 +248,7 @@ namespace Tetris
         }
 
         // === Hard Drop Animation ===
-        private const int _HdTotalAnimationFrames = 15;
+        private const int _HdTotalAnimationFrames = 17;
         private List<(int frame, Rectangle rect, Piece.E_Type belongsTo)> _hdAnimations = [];
 
         private void StartHdAnimation(Rectangle[] rectangle, Piece.E_Type belongsTo)
@@ -272,7 +272,7 @@ namespace Tetris
                 // The progress of the animation is
                 // Math.Sqrt if wanna first fast and then slow
                 // Math.Pow if wanna first slow and then fast
-                var alpha = 255 - (int)(255 * Math.Sqrt(1.0 * frame / _HdTotalAnimationFrames));
+                var alpha = 255 - (int)(240 * Math.Sqrt(1.0 * frame / _HdTotalAnimationFrames));
                 //var alpha = 255 - (int)(255 * Math.Pow(1.0 * frame / _HdTotalAnimationFrames, 2));
                 using LinearGradientBrush brush = new(
                     rect,

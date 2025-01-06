@@ -84,9 +84,9 @@ namespace Tetris
             return _blockData.AllWallKickTable[((int)rotation * E_OrientationCount) + (int)_blockData.Orientation];
         }
 
-        public void TwiceRptate() { _blockData.TwiceRotate(); }
-        public void RightRotate() { _blockData.RightRotate(); }
-        public void LeftRotate() { _blockData.LeftRotate(); }
+        public void RotateTwice() { _blockData.RotateTwice(); }
+        public void RotateRight() { _blockData.RotateRight(); }
+        public void RotateLeft() { _blockData.RotateLeft(); }
 
         public void MoveLeftOrRight(float x) { _pos.X += x; }
         public void MoveUpOrDown(float y) { _pos.Y += y; }
