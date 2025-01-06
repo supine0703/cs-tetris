@@ -16,7 +16,8 @@ namespace Tetris
         private const double _MaxGravityLimit = 20; // 20 cell per second no matter how many fps
         private const double _MinSoftDropGravity = 0.5;
         private const int _EntryDelayFrames = 10;
-        private const int _LineClearDelayMs = 500;
+        private const int _LockDelayFrames = 36; // = 32 * 16 = 512ms
+        private const int _LineClearDelayFrames = _CflTotalAnimationFrames;
 
         // Define the game playfield cell state
         private enum E_CellState { Empty = 0, Clearing, Occupied, }
@@ -30,9 +31,6 @@ namespace Tetris
         // Define the game state
         private enum E_GameState { Waiting = 0, Ready, Playing, Paused, GameOver, }
         private static int E_GameStateCount => Enum.GetValues(typeof(E_GameState)).Length;
-
-        // Define the game ...
-
 
         // Define some variable or attribute for the game control
         private delegate void GameStateChangedEventHandler(E_GameState state);
@@ -48,6 +46,7 @@ namespace Tetris
             }
         }
         private E_GameState _gameState;
+        private readonly BagRandomizer<Piece.E_Type> _randomizer = new(Enum.GetValues(typeof(Piece.E_Type)));
         private readonly List<CellInfo[]> _playfieldInfo = new(_MatrixRows + _BufferZoneRows);
         private readonly Queue<Piece> _previewQueue = new(_PreviewPieceCount);
         private readonly Queue<Piece> _holdQueue = new(_HoldPieceCount + 1);
@@ -63,13 +62,23 @@ namespace Tetris
             (double)(_frameTimer.Interval / 1000.0 / Math.Pow(0.8 - (Level - 1) * 0.007, Level - 1)) // static
 #endif
         );
-
         private double SoftDropGravity => Math.Min(
-            _MaxGravityLimit, Math.Max(_MinSoftDropGravity, NatureGravity  * 20)
+            _MaxGravityLimit, Math.Max(_MinSoftDropGravity, NatureGravity * 20)
         );
 
-        private readonly BagRandomizer<Piece.E_Type> _randomizer = new(Enum.GetValues(typeof(Piece.E_Type)));
+        // Define about the Lock
+        private int _waitedLockFrames = 0;
+        private float _lockDelayProgress => (float)_waitedLockFrames / _LockDelayFrames;
+        private void ResetWaitedLockFrames()
+        {
+            if (_waitedLockFrames != 0)
+            {
+                _waitedLockFrames = 0;
+                FrameInvalidate(WaitLockProgressRect);
+            }
+        }
 
+        // ...
         private void GameRuleLoad()
         {
             FrameTickLoadList?.Add((100, (sender, e) => TryDropPerFrame()));
@@ -135,20 +144,29 @@ namespace Tetris
         {
             _activePiece = _previewQueue.Dequeue();
             _previewQueue.Enqueue(GetRandomPiece());
-            this.Invalidate(PreviewQueueBoxRect);
+            FrameInvalidate(PreviewQueueBoxRect);
         }
 
         private bool TryDropPerFrame()
         {
             if (_activePiece == null) { return false; }
             if (GameState != E_GameState.Playing) { return false; }
-            
-            if (CanDrop() == 0) { return false; }
 
-            var down = (float)(SoftDropPressed ? SoftDropGravity : NatureGravity);
-
+            if (CanDrop() == 0)
+            {
+                if (++_waitedLockFrames >= _LockDelayFrames)
+                {
+                    if (TryPieceLock()) { }
+                }
+                FrameInvalidate(WaitLockProgressRect);
+                return false;
+            }
+            ResetWaitedLockFrames();
+            var pressed = SoftDropPressed;
+            if (pressed) { _sounds["Move"]?.RePlay(); }
+            var down = (float)(pressed ? SoftDropGravity : NatureGravity);
             if (!TryPieceMoveUpOrDown(down)) { DropBottom(); }
-
+            if (CanDrop() == 0) { _sounds["Fall"]?.RePlay(); }
             return true;
         }
 
@@ -182,7 +200,8 @@ namespace Tetris
                 }
                 return new Point(PlayfieldLocation.X, YiToPosY(row - _BufferZoneRows));
             }).ToArray());
-            _frameTimer.DelayToDo(_CflTotalAnimationFrames, () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
+
+            _frameTimer.DelayToDo(_LineClearDelayFrames, () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
             {
                 NextPiece();
                 fullLineRows.ForEach(line =>
@@ -190,12 +209,9 @@ namespace Tetris
                     _playfieldInfo.RemoveAt(line);
                     _playfieldInfo.Insert(0, new CellInfo[_MatrixColumns]);
                 });
-                this.Invalidate(new Rectangle(PlayfieldLocation.X, 0, _MatrixColumns * CellSize, this.ClientSize.Height));
+                FrameInvalidate(new Rectangle(PlayfieldLocation.X, 0, _MatrixColumns * CellSize, this.ClientSize.Height));
                 // Check if the game is over
-                if (CheckTopOut())
-                {
-                    OnTopOut();
-                }
+                if (CheckTopOut()) { OnTopOut(); }
             }));
             return true;
         }
@@ -207,6 +223,7 @@ namespace Tetris
 
             if (CanDrop() > 0) { return false; }
 
+            ResetWaitedLockFrames();
             _sounds["Lock"]?.RePlay();
 
             foreach (var pos in _activePiece.Placeholders)
@@ -215,7 +232,7 @@ namespace Tetris
                 var col = (int)Math.Ceiling(pos.X + _activePiece.Pos.X);
                 _playfieldInfo[row][col].State = E_CellState.Occupied;
                 _playfieldInfo[row][col].BelongsTo = _activePiece.Type;
-                this.Invalidate(new Rectangle(ColToPosX(col), RowToPosY(row), CellSize, CellSize));
+                FrameInvalidate(new Rectangle(ColToPosX(col), RowToPosY(row), CellSize, CellSize));
             }
 
             // Clear full lines
@@ -233,19 +250,20 @@ namespace Tetris
 
             return true;
         }
-       
+
         private bool TryPieceHold()
         {
             if (_activePiece is null) { return false; }
             if (GameState != E_GameState.Playing) { return false; }
 
+            ResetWaitedLockFrames();
             _sounds["Hold"]?.RePlay();
             _holdQueue.Enqueue(new(_activePiece.Type));
 
             if (_holdQueue.Count <= _HoldPieceCount) { NextPiece(); }
             else { _activePiece = _holdQueue.Dequeue(); }
 
-            this.Invalidate(HoldQueueBoxRect);
+            FrameInvalidate(HoldQueueBoxRect);
             return true;
         }
 
@@ -295,6 +313,7 @@ namespace Tetris
                 _activePiece.MoveLeftOrRight(-distance);
                 return false;
             }
+            ResetWaitedLockFrames();
             _sounds["Move"]?.RePlay();
             return true;
         }
@@ -311,6 +330,7 @@ namespace Tetris
                 _activePiece.MoveUpOrDown(-distance);
                 return false;
             }
+            ResetWaitedLockFrames();
             return true;
         }
 
@@ -326,6 +346,7 @@ namespace Tetris
                 _activePiece.RotateRight();
                 return false;
             }
+            ResetWaitedLockFrames();
             _sounds["Rotate"]?.RePlay();
             return true;
         }
@@ -342,6 +363,7 @@ namespace Tetris
                 _activePiece.RotateLeft();
                 return false;
             }
+            ResetWaitedLockFrames();
             _sounds["Rotate"]?.RePlay();
             return true;
         }
@@ -358,6 +380,7 @@ namespace Tetris
                 _activePiece.RotateTwice();
                 return false;
             }
+            ResetWaitedLockFrames();
             _sounds["Rotate"]?.RePlay();
             return true;
         }

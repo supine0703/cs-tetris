@@ -13,6 +13,8 @@ namespace Tetris
         private Color[][] _backgroundColors = null!;
         private Color[] _backColors = null!;
         private Color[] _foreColors = null!;
+        private Color[] _pauseBackColors = null!;
+        private Color[] _progressColors = null!;
 
         private Point PlayfieldLocation { get; set; }
         private Size PieceBoundingBoxSize { get; set; }
@@ -32,6 +34,16 @@ namespace Tetris
                     XiToPosX(0) - Padding.Left / 2 - width, YiToPosY(0.4f) + Padding.Bottom / 2,
                     width, (int)(cellSize * (3 + _PieceBoxPaddingRatio * 2))
                 );
+            }
+        }
+        private Rectangle WaitLockProgressRect
+        {
+            get
+            {
+                var rect = PreviewQueueBoxRect;
+                rect.Y += rect.Height + Padding.Top + Padding.Bottom / 2;
+                rect.Height = rect.Width;
+                return rect;
             }
         }
 
@@ -63,16 +75,16 @@ namespace Tetris
 
             if (_pieceStateBcakup is not null)
             {
-                this.Invalidate(GetPieceBoundingBox(_pieceStateBcakup));
-                this.Invalidate(GetPieceBoundingBox(_shadowStateBcakup!));
+                FrameInvalidate(GetPieceBoundingBox(_pieceStateBcakup));
+                FrameInvalidate(GetPieceBoundingBox(_shadowStateBcakup!));
             }
             if (_activePiece is not null)
             {
-                this.Invalidate(GetPieceBoundingBox(_activePiece));
+                FrameInvalidate(GetPieceBoundingBox(_activePiece));
                 _pieceStateBcakup = new(_activePiece);
                 _shadowStateBcakup = new(_activePiece);
                 DropBottom(_shadowStateBcakup);
-                this.Invalidate(GetPieceBoundingBox(_shadowStateBcakup));
+                FrameInvalidate(GetPieceBoundingBox(_shadowStateBcakup));
             }
             else
             {
@@ -89,7 +101,9 @@ namespace Tetris
             ];
             _backColors = [Color.Black, Color.FromArgb(248, 247, 247)];
             _foreColors = [Color.White, Color.Black];
-            FrameTickLoadList?.Add((0, (sender, e) => RecordPieceState()));
+            _pauseBackColors = [Color.FromArgb(128, Color.Black), Color.FromArgb(128, 222, 222, 222)];
+            _progressColors = [Color.Peru, Color.Blue];
+            FrameTickLoadList?.Add((1, (sender, e) => RecordPieceState()));
         }
 
         private void CalculateRedrawRegion(Rectangle invalidateRect)
@@ -131,7 +145,6 @@ namespace Tetris
 
             var g = e.Graphics;
 
-            //Debug.WriteLine("DrawPlayfield: " + rect);
             using (Pen outerPen = new(_foreColors[ThemeIndex], penWidth)) // Outer border pen with .. color
             using (SolidBrush backBrush = new(_backColors[ThemeIndex])) // Background brush with white color
             {
@@ -259,6 +272,37 @@ namespace Tetris
                 else if (piece.Type != Piece.E_Type.O) { xDiff = cellSize * 0.5f; }
                 // Draw the piece
                 g.DrawImage(_bitmapManager.GetPieceBitmap(piece.Type), startX + xDiff, startY + yDiff);
+            }
+        }
+
+        private void DrawWaitLockProgress(PaintEventArgs e)
+        {
+            var rect = WaitLockProgressRect;
+            var thickness = rect.Width * 0.18f;  // Ring thickness
+            var radius = rect.Width * 0.36f;    // Ring radius
+            rect.X += (int)(rect.Width * 0.5f - radius);
+            rect.Y += (int)(thickness / 2);
+
+            // Draw the background ring
+            using (Pen pen = new(new SolidBrush(Color.FromArgb(64, _foreColors[ThemeIndex])), thickness))
+            {
+                e.Graphics.DrawEllipse(pen, rect.X, rect.Y, radius * 2, radius * 2);
+            }
+
+            // Draw the progress ring
+            var sweepAngle = 360 * _lockDelayProgress;
+            using (Pen pen = new(_progressColors[ThemeIndex], thickness))
+            {
+                e.Graphics.DrawArc(pen, rect.X, rect.Y, radius * 2, radius * 2, -90, sweepAngle);
+            }
+        }
+
+        private void DrawPauseBackground(Graphics g)
+        {
+            if (GameState == E_GameState.Paused)
+            {
+                using SolidBrush brush = new(_pauseBackColors[ThemeIndex]);
+                g.FillRectangle(brush, ClientRectangle);
             }
         }
     }

@@ -31,8 +31,9 @@ namespace Tetris
         public event EventHandler? Tick;
         public int Interval { get; private set; } = _DefaultInterval;
         public double Fps { get; private set; } = 0;
+        public bool SkipOneFrame { get; private set; } = false;
         
-
+        public void FlagOneFrameIsSkipped() => SkipOneFrame = true;
         public void Start() => _timer.Change(0, Interval);
         public void Stop() => _timer.Change(Timeout.Infinite, Timeout.Infinite);
         public void Dispose() => _timer.Dispose();
@@ -43,7 +44,8 @@ namespace Tetris
 
         private void TimerCallback(object? state)
         {
-            if (_isTickInvoking) { return; }
+            if (_isTickInvoking) { FlagOneFrameIsSkipped(); return; }
+
             _isTickInvoking = true;
 
             // Update the FPS value
@@ -72,6 +74,11 @@ namespace Tetris
 
         private void UpdateFps()
         {
+            if (SkipOneFrame)
+            {
+                SkipOneFrame = false;
+                if (_frameTimeStamps.Count > 0) { _frameTimeStamps.RemoveAt(_frameTimeStamps.Count - 1); }
+            }
             // Record the timestamp of the current frame
             var currentTime = Stopwatch.GetTimestamp();
             _frameTimeStamps.Add(currentTime);

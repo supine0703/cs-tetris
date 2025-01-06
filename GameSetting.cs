@@ -332,10 +332,12 @@ namespace Tetris
                 case E_GameState.Paused:
                     _pauseButton.Show();
                     _pauseButton.Text = "\ue615";
+                    FrameInvalidate();
                     break;
                 case E_GameState.Playing:
                     _pauseButton.Show();
                     _pauseButton.Text = "\ue616";
+                    FrameInvalidate();
                     break;
                 default:
                     _pauseButton.Hide();

@@ -23,9 +23,11 @@ namespace Tetris
             InitializeFontResources();
             InitializeComponent();
             InitializeSounds();
+            InitializeFrameInvalidate();
             InitializeGamePaint();
             InitalizeGameAnimation();
             InitializeKeySystem();
+            // SkipOneFrameInFrameCount = 2; // There seems to be no need to skip frames
 
             this.Load += GameControlLoad;
         }
@@ -47,7 +49,7 @@ namespace Tetris
                 4 * CellSize + _bitmapManager.PieceBorderThickness
             );
             ResizeSettings();
-            this.Invalidate();
+            FrameInvalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -64,12 +66,13 @@ namespace Tetris
             DrawPlayfield(e);
             DrawPreviewQueue(e);
             DrawHoldQueue(e);
+            DrawWaitLockProgress(e);
 
-            e.Graphics.CompositingQuality = CompositingQuality.HighQuality; // Unnecessary and resource-intensive
+            //e.Graphics.CompositingQuality = CompositingQuality.HighQuality; // Unnecessary and resource-intensive
 
             DrawActivePiece(e);
-
-            DrawAllAnimationFrame(e.Graphics);
+            DrawAllAnimationFrame(e);
+            DrawPauseBackground(e.Graphics);
         }
 
         protected override void Dispose(bool disposing)
@@ -136,7 +139,7 @@ namespace Tetris
             _frameTimer.DelayToDo(15, UpdateFps);
             //_label.Text = $"FPS: {_frameTimer.Fps:F2}";
             _label.Text = $"G: {NatureGravity}, {NatureGravity * 62.5f / 60:F8}";
-            _label.Update();
+            _label.Refresh();
         }
     }
 }

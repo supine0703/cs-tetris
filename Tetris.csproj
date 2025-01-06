@@ -64,8 +64,8 @@
       <Link>GameElements.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameFrameRefresh.cs">
-      <Link>GameFrameRefresh.cs</Link>
+    <Compile Update="GameFrameInvlidate.cs">
+      <Link>GameFrameInvlidate.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
     <Compile Update="GameKeySystem.cs">

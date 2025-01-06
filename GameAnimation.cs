@@ -1,6 +1,7 @@
 ﻿//#define CLF_ANIMATION_ONLY_RENDER_SLEF
 #define CLF_ANIMATION_DRAW_CORNORS // Corners seems unnecessary
 
+using System.Diagnostics;
 using System.Drawing.Drawing2D;
 
 namespace Tetris
@@ -21,10 +22,10 @@ namespace Tetris
             HdAnimationNextFrame();
         }
 
-        private void DrawAllAnimationFrame(Graphics g)
+        private void DrawAllAnimationFrame(PaintEventArgs e)
         {
-            DrawCflAnimationFrame(g);
-            DrawHdAnimationFrame(g);
+            DrawCflAnimationFrame(e);
+            DrawHdAnimationFrame(e);
         }
 
         private void ResetAllAnimation()
@@ -59,7 +60,7 @@ namespace Tetris
             );
             return (inner, outer);
         }
-       
+
         private (int x, int y, Size outer) GetCflAnimationPosDelta(int cellSize, int frame)
         {
             var (inner, outer) = GetCflAnimationSize(cellSize, frame);
@@ -88,22 +89,25 @@ namespace Tetris
                 {
                     var (deltaX, deltaY, outer) = GetCflAnimationPosDelta(CellSize, cflA.frame);
                     Point pos = new(cflA.location.X - deltaX, cflA.location.Y - deltaY);
-                    FrameRefresh(new Rectangle(pos, outer));
+                    FrameInvalidate(new Rectangle(pos, outer));
                     (deltaX, deltaY, outer) = GetCflAnimationPosDelta(CellSize, cflA.frame - 1);
                     pos = new(cflA.location.X - deltaX, cflA.location.Y - deltaY);
-                    FrameRefresh(new Rectangle(pos, outer));
+                    FrameInvalidate(new Rectangle(pos, outer));
                 }
                 return (frame: cflA.frame + 1, cflA.location);
             }).Where(cflA => cflA.frame < _CflTotalAnimationFrames).ToList();
         }
 
-        private void DrawCflAnimationFrame(Graphics g)
+        private void DrawCflAnimationFrame(PaintEventArgs e)
         {
             _cflAnimations.ForEach(cflA =>
             {
-                var (deltaX, deltaY, _) = GetCflAnimationPosDelta(CellSize, cflA.frame);
+                var (deltaX, deltaY, outer) = GetCflAnimationPosDelta(CellSize, cflA.frame);
                 Point pos = new(cflA.location.X - deltaX, cflA.location.Y - deltaY);
-                g.DrawImage(_bitmapManager.GetFrameAnimation(_CflAnimationKey, cflA.frame), pos);
+                if (e.ClipRectangle.IntersectsWith(new Rectangle(pos, outer)))
+                {
+                    e.Graphics.DrawImage(_bitmapManager.GetFrameAnimation(_CflAnimationKey, cflA.frame), pos);
+                }
             });
         }
 
@@ -260,15 +264,16 @@ namespace Tetris
         {
             _hdAnimations = _hdAnimations.Select(hdA =>
             {
-                this.Invalidate(hdA.rect);
+                FrameInvalidate(hdA.rect);
                 return (frame: hdA.frame + 1, hdA.rect, hdA.belongsTo);
             }).Where(hdA => hdA.frame < _HdTotalAnimationFrames).ToList();
         }
 
-        private void DrawHdAnimationFrame(Graphics g)
+        private void DrawHdAnimationFrame(PaintEventArgs e)
         {
             foreach (var (frame, rect, belongsTo) in _hdAnimations)
             {
+                if (!e.ClipRectangle.IntersectsWith(rect)) { continue; }
                 // The progress of the animation is
                 // Math.Sqrt if wanna first fast and then slow
                 // Math.Pow if wanna first slow and then fast
@@ -280,7 +285,7 @@ namespace Tetris
                     Color.FromArgb(alpha, Piece.GetColors(belongsTo)[ThemeIndex]),
                     LinearGradientMode.Vertical
                 );
-                g.FillRectangle(brush, rect);
+                e.Graphics.FillRectangle(brush, rect);
             }
         }
     }
