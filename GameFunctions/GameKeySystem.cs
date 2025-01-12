@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Tetris
+﻿namespace Tetris
 {
     internal partial class GameControl
     {

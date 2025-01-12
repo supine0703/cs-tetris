@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>0.2.1.3</AssemblyVersion>
+    <AssemblyVersion>0.2.1.4</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,11 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="PieceData.cs">
+    <Compile Update="PieceDef\PieceData.cs">
       <Link>PieceData.cs</Link>
       <DependentUpon>Piece.cs</DependentUpon>
     </Compile>
-    <Compile Update="PieceColor.cs">
+    <Compile Update="PieceDef\PieceColor.cs">
       <Link>PieceColor.cs</Link>
       <DependentUpon>Piece.cs</DependentUpon>
     </Compile>
@@ -56,79 +56,44 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="GameAnimation.cs">
+    <Compile Update="GameFunctions\GameAnimation.cs">
       <Link>GameAnimation.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameElements.cs">
+    <Compile Update="GameFunctions\GameElements.cs">
       <Link>GameElements.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameFrameInvlidate.cs">
+    <Compile Update="GameFunctions\GameFrameInvlidate.cs">
       <Link>GameFrameInvlidate.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameKeySystem.cs">
+    <Compile Update="GameFunctions\GameKeySystem.cs">
       <Link>GameKeySystem.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GamePaint.cs">
+    <Compile Update="GameFunctions\GamePaint.cs">
       <Link>GamePaint.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameRecorder.cs">
+    <Compile Update="GameFunctions\GameRecorder.cs">
       <Link>GameRecorder.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameRule.cs">
+    <Compile Update="GameFunctions\GameRule.cs">
       <Link>GameRule.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameSetting.cs">
+    <Compile Update="GameFunctions\GameSetting.cs">
       <Link>GameSetting.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
-    <Compile Update="GameSound.cs">
+    <Compile Update="GameFunctions\GameSound.cs">
       <Link>GameSound.cs</Link>
       <DependentUpon>GameControl.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   
-  <ItemGroup>
-    <Compile Update="PanelFunctions\PanelAnimation.cs">
-      <Link>PanelAnimation.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PanelFunctions\PanelDraw.cs">
-      <Link>PanelDraw.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PanelFunctions\PanelElements.cs">
-      <Link>PanelElements.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PanelFunctions\PanelKeySystem.cs">
-      <Link>PanelKeySystem.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PanelFunctions\PanelRule.cs">
-      <Link>PanelRule.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PanelFunctions\PanelSettings.cs">
-      <Link>PanelSettings.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PanelFunctions\PanelSound.cs">
-      <Link>PanelSound.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-    <Compile Update="PanelFunctions\PanelTimer.cs">
-      <Link>PanelTimer.cs</Link>
-      <DependentUpon>Panel.cs</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
