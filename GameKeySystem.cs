@@ -97,7 +97,15 @@ namespace Tetris
                 {
                     BgmButtonClick();
                 }
+                // Pause
                 else if (GameState != E_GameState.Playing)
+                {
+                }
+                // Move
+                else if (IsMoveLeftKey(e.KeyCode))
+                {
+                }
+                else if (IsMoveRightKey(e.KeyCode))
                 {
                 }
                 // Rotate
@@ -136,7 +144,6 @@ namespace Tetris
                 // Reset drop progress
                 if (changed)
                 {
-                    //ResetAutoEatProceed();
                 }
             }
 

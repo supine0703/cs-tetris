@@ -16,7 +16,7 @@ namespace Tetris
         private const double _MaxGravityLimit = 20; // 20 cell per second no matter how many fps
         private const double _MinSoftDropGravity = 0.5;
         private const int _EntryDelayFrames = 10;
-        private const int _LockDelayFrames = 36; // = 32 * 16 = 512ms
+        private const int _LockDelayFrames = 42; // = 42 * 16 = 672ms
         private const int _LineClearDelayFrames = _CflTotalAnimationFrames;
 
         // Define the game playfield cell state
@@ -31,6 +31,10 @@ namespace Tetris
         // Define the game state
         private enum E_GameState { Waiting = 0, Ready, Playing, Paused, GameOver, }
         private static int E_GameStateCount => Enum.GetValues(typeof(E_GameState)).Length;
+
+        // Define the game mode
+        private enum E_GameMode { Normal = 0, Safety, }
+        private static int E_GameModeCount => Enum.GetValues(typeof(E_GameMode)).Length;
 
         // Define some variable or attribute for the game control
         private delegate void GameStateChangedEventHandler(E_GameState state);
@@ -52,12 +56,16 @@ namespace Tetris
         private readonly Queue<Piece> _holdQueue = new(_HoldPieceCount + 1);
         private Piece? _activePiece;
 
+        // Define some limit
+        private E_GameMode GameMode { get; set; } = E_GameMode.Normal;
+        private bool CanHold { get; set; } = true;
+
         // Define about the Gravity
         private ulong _clearLineCount = 0;
-        private ulong Level => _clearLineCount / 10 + 1;
+        private ulong Level => Math.Min(100, _clearLineCount / 10) + 1;
         private double NatureGravity => Math.Min(_MaxGravityLimit,
 #if DYNAMIC_NATURE_GRAVITY
-            (double)(1.0 / (Math.Pow((0.8 - (Level - 1) * 0.007), Level - 1) * _frameTimer.Fps)) // dynamic
+            (double)(1.0 / (_frameTimer.Fps * Math.Pow((0.8 - (Level - 1) * 0.007), Level - 1))) // dynamic
 #else
             (double)(_frameTimer.Interval / 1000.0 / Math.Pow(0.8 - (Level - 1) * 0.007, Level - 1)) // static
 #endif
@@ -68,7 +76,7 @@ namespace Tetris
 
         // Define about the Lock
         private int _waitedLockFrames = 0;
-        private float _lockDelayProgress => (float)_waitedLockFrames / _LockDelayFrames;
+        private float LockDelayProgress => (float)_waitedLockFrames / _LockDelayFrames;
         private void ResetWaitedLockFrames()
         {
             if (_waitedLockFrames != 0)
@@ -78,9 +86,27 @@ namespace Tetris
             }
         }
 
+        // Define about clock
+        private readonly Stopwatch _stopwatch = new();
+
+        // Others
+        private int _softDropSoundDelayCounter;
+        private const int _SoftDropSoundDelayFrames = 5;
+
         // ...
-        private void GameRuleLoad()
+        private void LoadGameRule()
         {
+            GameStateChanged += state =>
+            {
+                if (state == E_GameState.Playing)
+                {
+                    _stopwatch.Start();
+                }
+                else
+                {
+                    _stopwatch.Stop();
+                }
+            };
             FrameTickLoadList?.Add((100, (sender, e) => TryDropPerFrame()));
             RestartGame();
         }
@@ -111,16 +137,12 @@ namespace Tetris
 
             this.Invalidate();
 
-            //// Update pause message and animation
-            //_stopwatch.Restart();
-            //PauseButtonClick();
-            //PauseButtonClick();
-            //ResetAllAnimation();
-
-            //// Reset the game info
-            //LineClearCount = 0;
-            //TotalScore = 0;
-            //RefushTotalScore();
+            // Reset the state
+            _stopwatch.Restart();
+            _clearLineCount = 0;
+            UpdateScore();
+            ResetAllAnimation();
+            _behaviors.Clear();
         }
 
         private bool CheckTopOut()
@@ -134,6 +156,7 @@ namespace Tetris
             GameState = E_GameState.GameOver;
             _sounds["GameOver"]?.RePlay();
             _activePiece = null;
+            FrameInvalidate();
         }
 
         // TODO ...
@@ -144,6 +167,11 @@ namespace Tetris
         {
             _activePiece = _previewQueue.Dequeue();
             _previewQueue.Enqueue(GetRandomPiece());
+            if (!CanHold)
+            {
+                CanHold = true;
+                FrameInvalidate(HoldQueueBoxRect);
+            }
             FrameInvalidate(PreviewQueueBoxRect);
         }
 
@@ -152,8 +180,22 @@ namespace Tetris
             if (_activePiece == null) { return false; }
             if (GameState != E_GameState.Playing) { return false; }
 
+            if (GameMode == E_GameMode.Safety)
+            {
+                ResetWaitedLockFrames();
+                if (!SoftDropPressed || CanDrop() == 0) { return false; }
+
+                TryPlayMoveSound();
+
+                if (!TryPieceMoveUpOrDown((float)_MinSoftDropGravity)) { DropBottom(); }
+                if (CanDrop() == 0) { _sounds["Fall"]?.RePlay(); }
+                return true;
+            }
+
+            // Normal mode
             if (CanDrop() == 0)
             {
+                _softDropSoundDelayCounter = 0;
                 if (++_waitedLockFrames >= _LockDelayFrames)
                 {
                     if (TryPieceLock()) { }
@@ -163,11 +205,25 @@ namespace Tetris
             }
             ResetWaitedLockFrames();
             var pressed = SoftDropPressed;
-            if (pressed) { _sounds["Move"]?.RePlay(); }
+            if (pressed) { TryPlayMoveSound(); }
             var down = (float)(pressed ? SoftDropGravity : NatureGravity);
             if (!TryPieceMoveUpOrDown(down)) { DropBottom(); }
             if (CanDrop() == 0) { _sounds["Fall"]?.RePlay(); }
             return true;
+
+            void TryPlayMoveSound()
+            {
+                var moveSound = _sounds["Move"];
+                if (moveSound is not null)
+                {
+                    if (!moveSound.Playing || _softDropSoundDelayCounter == 0)
+                    {
+                        _softDropSoundDelayCounter = _SoftDropSoundDelayFrames;
+                        moveSound.RePlay();
+                    }
+                    else { _softDropSoundDelayCounter--; }
+                }
+            }
         }
 
         private bool TryLineClear()
@@ -192,6 +248,8 @@ namespace Tetris
 
             //CaculateScore(fullLineRows.Count);
             _clearLineCount += (ulong)fullLineRows.Count;
+            _behaviors.Add((E_PieceBehavior)((uint)1 << (fullLineRows.Count + 19)) | E_PieceBehavior.ClearL);
+            CalculateScore();
             StartCflAnimation(fullLineRows.Select(row =>
             {
                 foreach (var i in Enumerable.Range(0, _playfieldInfo[row].Length))
@@ -199,9 +257,7 @@ namespace Tetris
                     _playfieldInfo[row][i].State = E_CellState.Clearing;
                 }
                 return new Point(PlayfieldLocation.X, YiToPosY(row - _BufferZoneRows));
-            }).ToArray());
-
-            _frameTimer.DelayToDo(_LineClearDelayFrames, () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
+            }).ToArray(), () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
             {
                 NextPiece();
                 fullLineRows.ForEach(line =>
@@ -213,6 +269,7 @@ namespace Tetris
                 // Check if the game is over
                 if (CheckTopOut()) { OnTopOut(); }
             }));
+
             return true;
         }
 
@@ -256,12 +313,17 @@ namespace Tetris
             if (_activePiece is null) { return false; }
             if (GameState != E_GameState.Playing) { return false; }
 
+            if (GameMode == E_GameMode.Safety) { CanHold = true; }
+            else if (!CanHold) { return false; }
+
             ResetWaitedLockFrames();
             _sounds["Hold"]?.RePlay();
             _holdQueue.Enqueue(new(_activePiece.Type));
 
             if (_holdQueue.Count <= _HoldPieceCount) { NextPiece(); }
             else { _activePiece = _holdQueue.Dequeue(); }
+
+            if (GameMode == E_GameMode.Normal) { CanHold = false; }
 
             FrameInvalidate(HoldQueueBoxRect);
             return true;

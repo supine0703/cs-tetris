@@ -56,5 +56,29 @@
             Spin_Tetris = Spin | Tetris,
         }
 
+        List<E_PieceBehavior> _behaviors = [];
+        private ulong _totalScore = 0;
+
+        private void CalculateScore()
+        {
+            if (_behaviors.Count == 0) { }
+            else if (_behaviors.Last() == E_PieceBehavior.Single)
+            {
+                _totalScore += 100;
+            }
+            else if (_behaviors.Last() == E_PieceBehavior.Double)
+            {
+                _totalScore += 300;
+            }
+            else if (_behaviors.Last() == E_PieceBehavior.Triple)
+            {
+                _totalScore += 500;
+            }
+            else if (_behaviors.Last() == E_PieceBehavior.Tetris)
+            {
+                _totalScore += 800;
+            }
+            UpdateScore();
+        }
     }
 }

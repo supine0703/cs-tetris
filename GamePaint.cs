@@ -1,7 +1,4 @@
-﻿using NAudio.Gui;
-using System.Diagnostics;
-using System.Drawing.Drawing2D;
-using static System.Windows.Forms.AxHost;
+﻿using System.Drawing.Drawing2D;
 
 namespace Tetris
 {
@@ -186,7 +183,7 @@ namespace Tetris
 
             // Draw the shadow of the piece
             using var bitmap = BitmapManager.CreatePieceBitmap(
-                _bitmapManager.Theme, _pieceStateBcakup, CellSize, _bitmapManager.PieceBorderThickness
+                _bitmapManager.Theme, _pieceStateBcakup, CellSize, BorderThickness
             );
             using (var shadowBitmap = BitmapManager.FromAlphaBitmap(64, bitmap))
             {
@@ -273,6 +270,12 @@ namespace Tetris
                 // Draw the piece
                 g.DrawImage(_bitmapManager.GetPieceBitmap(piece.Type), startX + xDiff, startY + yDiff);
             }
+
+            if (!CanHold)
+            {
+                using SolidBrush backBrush = new(Color.FromArgb(128, _backColors[ThemeIndex]));
+                g.FillRectangle(backBrush, rect);
+            }
         }
 
         private void DrawWaitLockProgress(PaintEventArgs e)
@@ -290,7 +293,7 @@ namespace Tetris
             }
 
             // Draw the progress ring
-            var sweepAngle = 360 * _lockDelayProgress;
+            var sweepAngle = 360 * LockDelayProgress;
             using (Pen pen = new(_progressColors[ThemeIndex], thickness))
             {
                 e.Graphics.DrawArc(pen, rect.X, rect.Y, radius * 2, radius * 2, -90, sweepAngle);
@@ -299,7 +302,7 @@ namespace Tetris
 
         private void DrawPauseBackground(Graphics g)
         {
-            if (GameState == E_GameState.Paused)
+            if (GameState == E_GameState.Paused || GameState == E_GameState.GameOver)
             {
                 using SolidBrush brush = new(_pauseBackColors[ThemeIndex]);
                 g.FillRectangle(brush, ClientRectangle);

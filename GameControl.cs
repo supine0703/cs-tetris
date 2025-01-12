@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing.Drawing2D;
-using System.Dynamic;
-using static Tetris.TetrisPanel;
+﻿using System.Drawing.Drawing2D;
 
 namespace Tetris
 {
@@ -45,8 +42,8 @@ namespace Tetris
                 (this.ClientSize.Height - _MatrixRows * CellSize) / 2
             );
             PieceBoundingBoxSize = new(
-                4 * CellSize + _bitmapManager.PieceBorderThickness,
-                4 * CellSize + _bitmapManager.PieceBorderThickness
+                4 * CellSize + BorderThickness,
+                4 * CellSize + BorderThickness
             );
             ResizeSettings();
             FrameInvalidate();
@@ -100,7 +97,7 @@ namespace Tetris
 
         private void GameControlLoad(object? sender, EventArgs e)
         {
-            GameRuleLoad();
+            LoadGameRule();
 
             if (this.ParentForm is not null)
             {

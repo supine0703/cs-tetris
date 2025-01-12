@@ -11,7 +11,7 @@ namespace Tetris
         private void InitalizeGameAnimation()
         {
             _frameTimer.Tick += (sender, e) => AllAnimationNextFrame();
-            InitializeCflAnimation();
+            InitCflAnimation();
         }
 
         private void AllAnimationNextFrame()
@@ -31,7 +31,8 @@ namespace Tetris
         private void ResetAllAnimation()
         {
             // Reset the Clear Full Lines Animation
-            // ...
+            _cflAnimations.Clear();
+            _cflAEndToDoActions.Clear();
             // Reset the Hard Drop Animation
             _hdAnimations.Clear();
         }
@@ -44,6 +45,7 @@ namespace Tetris
         private const float _CflHorizontalExtensionRatio = 0.391f;
         private readonly Color[] _cflCenterColors = [Color.FromArgb(252, 249, 176), Color.FromArgb(171, 32, 164)];
         private List<(int frame, Point location)> _cflAnimations = [];
+        private List<(int frame, Action toDo)> _cflAEndToDoActions = [];
 
         private (Size inner, Size outer) GetCflAnimationSize(int cellSize, int frame)
         {
@@ -69,18 +71,25 @@ namespace Tetris
             return (xDelta, yDelta, outer);
         }
 
-        private void InitializeCflAnimation()
+        private void InitCflAnimation()
         {
             _bitmapManager.RegisterFrameAnimation(_CflAnimationKey, _CflTotalAnimationFrames, CreateCflAnimation);
         }
 
-        private void StartCflAnimation(Point[] locations)
+        private void StartCflAnimation(Point[] locations, Action? endToDo = null)
         {
             _cflAnimations.AddRange(locations.Select(l => (0, l)));
+            if (endToDo is not null) { _cflAEndToDoActions.Add((_CflTotalAnimationFrames, endToDo)); }
         }
 
         private void CflAnimationNextFrame()
         {
+            // Execute the actions that should be done at the end of the animation
+            _cflAEndToDoActions = _cflAEndToDoActions.Select(cflToDo => {
+                if (cflToDo.frame == 1) { cflToDo.toDo.Invoke(); }
+                return (frame: cflToDo.frame - 1, cflToDo.toDo);
+            }).Where(cflToDo => cflToDo.frame > 0).ToList();
+            // Remove the animations that have reached the end
             _cflAnimations = _cflAnimations.Select(cflA =>
             {
 #if CLF_ANIMATION_ONLY_RENDER_SLEF
