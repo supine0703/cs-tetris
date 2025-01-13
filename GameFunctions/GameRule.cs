@@ -114,7 +114,7 @@ namespace Tetris
         private void RestartGame()
         {
             // Reset the randomizer
-            _randomizer.RefillBag();
+            _randomizer.Reset();
 
             // Reset the playfield info
             _playfieldInfo.Clear();

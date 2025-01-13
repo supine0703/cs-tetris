@@ -135,7 +135,8 @@ namespace Tetris
         {
             _frameTimer.DelayToDo(15, UpdateFps);
             //_label.Text = $"FPS: {_frameTimer.Fps:F2}";
-            _label.Text = $"G: {NatureGravity}, {NatureGravity * 62.5f / 60:F8}";
+            //_label.Text = $"G: {NatureGravity}, {NatureGravity * 62.5f / 60:F8}";
+            _label.Text = $"G: {NatureGravity}";
             _label.Refresh();
         }
     }

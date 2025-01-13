@@ -57,7 +57,7 @@ namespace Tetris
         private readonly Dictionary<string, Mp3Sound?> _sounds = [];
         private Mp3Sound? _silentAudio; // For keeping the audio device alive
         private Mp3Sound? _backgroundMusic;
-        private bool BgmMute { get; set; } = true;
+        private bool BgmMute { get; set; } = false;
 
         private void InitializeSounds()
         {

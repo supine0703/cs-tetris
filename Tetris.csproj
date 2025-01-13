@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AssemblyVersion>0.2.1.4</AssemblyVersion>
+    <AssemblyVersion>0.2.1.5</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,6 +33,15 @@
     <EmbeddedResource Include="Assets\music\Korobeiniki(Tetris Theme)-Kutay.mp3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Common\BagRandomizer.cs">
+      <Link>BagRandomizer.cs</Link>
+    </Compile>
+    <Compile Update="Common\Thickness.cs">
+      <Link>Thickness.cs</Link>
+    </Compile>
+  </ItemGroup>
+  
   <ItemGroup>
     <Compile Update="PieceDef\PieceData.cs">
       <Link>PieceData.cs</Link>

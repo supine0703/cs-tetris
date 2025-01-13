@@ -1,4 +1,5 @@
-﻿using System.Drawing.Text;
+﻿using System.Diagnostics;
+using System.Drawing.Text;
 using System.Reflection;
 
 namespace Tetris
@@ -55,14 +56,17 @@ namespace Tetris
         private readonly CustomLabel _watchLabel = new();
         private readonly CustomLabel _clearLabel = new();
         private readonly CustomLabel _scoreLabel = new();
-        private readonly CustomLabel _messageLabel = new();
-        private float MassageLabelRatio { get; set; } = 1.0f;
 
         private readonly CustomLabel _safetyModeLabel = new();
         private readonly CustomButton _safetyModeButton = new();
 
         private readonly CustomLabel _howToPlayLabel_1 = new();
         private readonly CustomLabel _howToPlayLabel_2 = new();
+
+        private readonly CustomLabel _messageLabel = new();
+        private float MassageLabelRatio { get; set; } = 1.0f;
+
+        private LinkLabel _goToGitHubLink = new();
 
         private void InitializeSettings()
         {
@@ -143,6 +147,38 @@ namespace Tetris
                 else { _messageLabel.Hide(); }
             };
 
+            // Initialize the go to GitHub link
+            //var urlStr = Info.Repository;
+            //_goToGitHubLink.Text = $"{urlStr}";
+            //_goToGitHubLink.TextAlign = ContentAlignment.TopCenter;
+            //_goToGitHubLink.BackColor = Color.Transparent;
+            //_goToGitHubLink.Links.Add(_goToGitHubLink.Text.Length - urlStr.Length, urlStr.Length, urlStr);
+            //_goToGitHubLink.LinkClicked += (sender, e) =>
+            //{
+            //    if (e.Link.LinkData != null)
+            //    {
+            //        string url = e.Link.LinkData?.ToString() ?? string.Empty;
+            //        if (!string.IsNullOrEmpty(url))
+            //        {
+            //            ProcessStartInfo startInfo = new()
+            //            {
+            //                FileName = url,
+            //                UseShellExecute = true
+            //            };
+            //            Process.Start(startInfo);
+            //        }
+            //        else
+            //        {
+            //            MessageBox.Show("链接地址为空！");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        MessageBox.Show("链接数据为 null！");
+            //    }
+            //};
+            //this.Controls.Add(_goToGitHubLink);
+
             // Initialize the how to play label
             InitHowToPlayLabel();
 
@@ -219,6 +255,12 @@ namespace Tetris
             var blockSize = CellSize * 0.672f;
             var width = blockSize * 4.56f;
             var height = blockSize * 4.28f;
+
+            //// Resize the go to GitHub link (center)
+            //{
+            //    _goToGitHubLink.Size = new(ClientSize.Width, boardSize.Height / 4);
+            //    _goToGitHubLink.Location = new(0, (int)(leftY) + boardSize.Height);
+            //}
 
             // Resize the message label (center)
             {

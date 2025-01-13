@@ -1,20 +1,29 @@
-﻿namespace Tetris
+﻿using System.Diagnostics;
+
+namespace Tetris
 {
     public class BagRandomizer<T>()
     {
-        private readonly Random _random = new();
+        private Random _random = null!;
         private List<T> _items = [];
         private Queue<int> _bagIndexs = [];
 
         public BagRandomizer(Array arr) : this(arr.Cast<T>().ToArray()) { }
         public BagRandomizer(T[] items) : this()
         {
-            _items = new(items);
-            _bagIndexs = new(_items.Count);
+            Reset(items);
+        }
+
+        public void Reset()
+        {
+            var seed = (int)DateTime.Now.Ticks;
+            Debug.WriteLine($"BagRandomizer seed: {seed}");
+            _random = new Random(seed);
         }
 
         public void Reset(T[] items)
         {
+            Reset();
             _items = new(items);
             _bagIndexs = new(_items.Count);
         }
