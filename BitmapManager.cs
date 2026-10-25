@@ -90,7 +90,7 @@ namespace Tetris
         private readonly Dictionary<string, (BitmapFactory creator, List<Bitmap?> a)> _frameAnimations = [];
 
         public void RegisterFrameAnimation(string name, int frame, BitmapFactory creator)
-        { _frameAnimations[name] = (creator, new(new Bitmap?[frame])); }
+        { _frameAnimations[name] = (creator, [.. new Bitmap?[frame]]); }
 
         public void Dispose()
         {
@@ -137,11 +137,11 @@ namespace Tetris
                 bmps?.ForEach(bitmaps => bitmaps.ForEach(bitmap => bitmap.Dispose()));
 
                 // Create new bitmaps
-                bmps = Enum.GetValues(typeof(E_Theme)).Cast<E_Theme>().Select(
+                bmps = [.. Enum.GetValues(typeof(E_Theme)).Cast<E_Theme>().Select(
                     theme => Enum.GetValues(typeof(Piece.E_Type)).Cast<Piece.E_Type>().Select(
                         type => CreateBitmap(theme, type)
                     ).ToList()
-                ).ToList();
+                )];
             }
         }
     

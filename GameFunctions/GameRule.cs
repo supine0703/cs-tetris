@@ -250,14 +250,14 @@ namespace Tetris
             _clearLineCount += (ulong)fullLineRows.Count;
             _behaviors.Add((E_PieceBehavior)((uint)1 << (fullLineRows.Count + 19)) | E_PieceBehavior.ClearL);
             CalculateScore();
-            StartCflAnimation(fullLineRows.Select(row =>
+            StartCflAnimation([.. fullLineRows.Select(row =>
             {
                 foreach (var i in Enumerable.Range(0, _playfieldInfo[row].Length))
                 {
                     _playfieldInfo[row][i].State = E_CellState.Clearing;
                 }
                 return new Point(PlayfieldLocation.X, YiToPosY(row - _BufferZoneRows));
-            }).ToArray(), () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
+            })], () => _frameTimer.DelayToDo(_EntryDelayFrames, () =>
             {
                 NextPiece();
                 fullLineRows.ForEach(line =>
@@ -335,10 +335,9 @@ namespace Tetris
             if (GameState != E_GameState.Playing) { return false; }
 
             // Get the top placeholders of the current piece
-            List<Position> placeholders = _activePiece.Placeholders
+            List<Position> placeholders = [.. _activePiece.Placeholders
                 .GroupBy(pos => pos.X)
-                .Select(g => g.OrderBy(pos => pos.Y).First())
-                .ToList();
+                .Select(g => g.OrderBy(pos => pos.Y).First())];
 
             // Get start position
             var startPos = _activePiece.Pos;
@@ -350,11 +349,11 @@ namespace Tetris
             var deltaY = _activePiece.Pos.Y - startPos.Y;
 
             // Get rectangles for the hard drop animation and run the animation
-            StartHdAnimation(placeholders.Select(placeholder => new Rectangle(
+            StartHdAnimation([.. placeholders.Select(placeholder => new Rectangle(
                 PlayfieldLocation.X + (int)((placeholder.X + startPos.X) * CellSize),
                 PlayfieldLocation.Y + (int)((placeholder.Y + startPos.Y) * CellSize),
                 CellSize, (int)(CellSize * deltaY) - 2 // subtract 2 (cell border)
-            )).ToArray(), _activePiece.Type);
+            ))], _activePiece.Type);
 
             if (!TryPieceLock())
             {
